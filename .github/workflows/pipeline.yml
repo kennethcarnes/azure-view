@@ -1,0 +1,43 @@
+name: Pipeline
+
+# Triggers on a push to the main branch
+# or when manually dispatched with an input 'stage'
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: 'Which stage to deploy to'  # Description for the manual input
+        required: true                           # Make input required
+
+jobs:
+
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+
+  # Deploy to a test environment
+  deploy_to_test:
+    runs-on: ubuntu-latest  # Use latest Ubuntu environment
+    needs: build_and_test   # Make sure to deploy to test only after build and test pass
+    steps:
+
+        - name: Checkout code
+          uses: actions/checkout@v3
+          
+    if: github.event_name == 'push'  # Condition to automatically deploy to test when pushed to main
+
+  deploy_to_production:
+    runs-on: ubuntu-latest
+    needs: deploy_to_test
+    steps:
+    
+        - name: Checkout code
+          uses: actions/checkout@v3
+    if: github.event.inputs.stage == 'production'  # Condition to deploy only when manually triggered for 'production'
