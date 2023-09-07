@@ -1,4 +1,3 @@
-// main.bicep
 targetScope = 'resourceGroup'
 
 module frontend './frontend.bicep' = {

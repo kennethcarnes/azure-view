@@ -1,4 +1,4 @@
-name: Pipeline
+name: Azure CI/CD Pipeline
 
 # Triggers on a push to the main branch
 # or when manually dispatched with an input 'stage'
@@ -9,35 +9,41 @@ on:
   workflow_dispatch:
     inputs:
       stage:
-        description: 'Which stage to deploy to'  # Description for the manual input
-        required: true                           # Make input required
+         # Description of manual input
+        description: 'Which stage to deploy to'
+         # Make the input required
+        required: true
 
 jobs:
-
   build_and_test:
     runs-on: ubuntu-latest
     steps:
-
     - name: Checkout code
-      uses: actions/checkout@v3
-    
+      uses: actions/checkout@v2
 
-  # Deploy to a test environment
+    - name: Build and Test
+      run: |
+
   deploy_to_test:
-    runs-on: ubuntu-latest  # Use latest Ubuntu environment
-    needs: build_and_test   # Make sure to deploy to test only after build and test pass
+    runs-on: ubuntu-latest
+    needs: build_and_test
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-        - name: Checkout code
-          uses: actions/checkout@v3
-          
-    if: github.event_name == 'push'  # Condition to automatically deploy to test when pushed to main
+    - name: Deploy to Test
+      run: |
+
+    if: github.event_name == 'push'
 
   deploy_to_production:
     runs-on: ubuntu-latest
     needs: deploy_to_test
     steps:
-    
-        - name: Checkout code
-          uses: actions/checkout@v3
-    if: github.event.inputs.stage == 'production'  # Condition to deploy only when manually triggered for 'production'
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Deploy to Production
+      run: |
+
+    if: github.event.inputs.stage == 'production'

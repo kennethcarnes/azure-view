@@ -1,5 +1,4 @@
 // frontend.bicep
-// frontend.bicep
 param swaName string
 param location string
 param swaSku string
