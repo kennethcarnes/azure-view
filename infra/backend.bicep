@@ -7,11 +7,11 @@ param storageAccountSkuName string
 param storageAccountKind string
 param appServicePlanName string
 param storageAccountConnectionString string
-param databaseAccountName string
-param databaseAccountKind string
-param databaseName string
-param containerName string
-param throughput int = 400
+param cosmosDbAccountName string
+param cosmosDbAccountKind string
+param cosmosDbName string
+param cosmosDbContainerName string
+param cosmosDbThroughput int
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   name: storageAccountName
@@ -36,6 +36,8 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
         { name: 'AzureWebJobsStorage', value: storageAccountConnectionString }
         { name: 'FUNCTIONS_EXTENSION_VERSION', value: '~4' }
         { name: 'FUNCTIONS_WORKER_RUNTIME', value: runtime }
+        { name: 'ReviewApiUrl', value: reviewApiUrl }
+        { name: 'ReviewApiKey', value: reviewApiKey }
       ]
       ftpsState: 'FtpsOnly'
       minTlsVersion: '1.2'
@@ -44,32 +46,44 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
   }
 }
 
-resource databaseAccount 'Microsoft.DocumentDB/databaseAccounts@2022-05-15' = {
-  name: databaseAccountName
+resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-05-15' = {
+  name: cosmosDbAccountName
   location: location
-  kind: databaseAccountKind
+  kind: cosmosDbAccountKind
   properties: {
-    consistencyPolicy: { defaultConsistencyLevel: 'Session' }
-    locations: [{ locationName: location, failoverPriority: 0, isZoneRedundant: false }]
     databaseAccountOfferType: 'Standard'
-    enableAutomaticFailover: true
+    enableAutomaticFailover: false
+    consistencyPolicy: {
+      defaultConsistencyLevel: 'Session'
+    }
+    locations: [{
+      locationName: location
+      failoverPriority: 0
+      isZoneRedundant: false
+    }]
   }
 }
 
-resource database 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2022-05-15' = {
-  parent: databaseAccount
-  name: databaseName
-  properties: { resource: { id: databaseName } }
-}
-
-resource container 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2022-05-15' = {
-  name: containerName
-  parent: database
+resource cosmosDb 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2022-05-15' = {
+  parent: cosmosDbAccount
+  name: cosmosDbName
   properties: {
     resource: {
-      id: containerName
-      partitionKey: { paths: ['/myPartitionKey'], kind: 'Hash' }
+      id: cosmosDbName
     }
-    options: { throughput: throughput }
+  }
+}
+
+resource cosmosDbContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2022-05-15' = {
+  name: cosmosDbContainerName
+  parent: cosmosDb
+  properties: {
+    resource: {
+      id: cosmosDbContainerName
+      partitionKey: {
+        paths: [ '/resourceType' ]
+      }
+    }
+    options: { throughput: cosmosDbThroughput }
   }
 }
