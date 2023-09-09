@@ -1,12 +1,10 @@
 param location string
-param runtime string
 param functionAppName string
 param functionAppKind string
 param storageAccountName string
 param storageAccountSkuName string
 param storageAccountKind string
 param appServicePlanName string
-param storageAccountConnectionString string
 param cosmosDbAccountName string
 param cosmosDbAccountKind string
 param cosmosDbName string
@@ -33,11 +31,9 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
     serverFarmId: resourceId('Microsoft.Web/serverfarms', appServicePlanName)
     siteConfig: {
       appSettings: [
-        { name: 'AzureWebJobsStorage', value: storageAccountConnectionString }
+        { name: 'AzureWebJobsStorage', value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}' }
         { name: 'FUNCTIONS_EXTENSION_VERSION', value: '~4' }
-        { name: 'FUNCTIONS_WORKER_RUNTIME', value: runtime }
-        { name: 'ReviewApiUrl', value: reviewApiUrl }
-        { name: 'ReviewApiKey', value: reviewApiKey }
+        { name: 'FUNCTIONS_WORKER_RUNTIME', value: 'PowerShell' }
       ]
       ftpsState: 'FtpsOnly'
       minTlsVersion: '1.2'

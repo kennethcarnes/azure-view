@@ -1,11 +1,4 @@
-@description('The URL to the product review API.')
-param reviewApiUrl string
-
-@secure()
-@description('The API key to use when accessing the product review API.')
-param reviewApiKey string
-
-targetScope = 'resourceGroup'f
+targetScope = 'resourceGroup'
 
 module frontend './frontend.bicep' = {
   name: 'frontendDeployment'

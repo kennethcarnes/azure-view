@@ -1,5 +1,4 @@
-name: deploy-toy-website-environments
-concurrency: toy-company
+name: deploy-azure-view-environments
 
 on:
   push:
@@ -13,23 +12,19 @@ permissions:
 
 jobs:
 
-  # Lint the Bicep file.
   lint:
     uses: ./.github/workflows/lint.yml
 
-  # Deploy to the test environment.
   deploy-test:
     uses: ./.github/workflows/deploy.yml
     needs: lint
     with:
       environmentType: Test
-      resourceGroupName: ToyWebsiteTest
-      reviewApiUrl: https://sandbox.contoso.com/reviews
+      resourceGroupName: rg-azure-view-test-001
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID_TEST }}
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      reviewApiKey: ${{ secrets.REVIEW_API_KEY_TEST }}
 
   # Deploy to the production environment.
   deploy-production:
@@ -37,10 +32,10 @@ jobs:
     needs: deploy-test
     with:
       environmentType: Production
-      resourceGroupName: ToyWebsiteProduction
-      reviewApiUrl: https://api.contoso.com/reviews
+      resourceGroupName: rg-azure-view-prod-001
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID_PRODUCTION }}
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      reviewApiKey: ${{ secrets.REVIEW_API_KEY_PRODUCTION }}
+
+    

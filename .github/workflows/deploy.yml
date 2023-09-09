@@ -9,17 +9,12 @@ on:
       resourceGroupName:
         required: true
         type: string
-      reviewApiUrl:
-        required: true
-        type: string
     secrets:
       AZURE_CLIENT_ID:
         required: true
       AZURE_TENANT_ID:
         required: true
       AZURE_SUBSCRIPTION_ID:
-        required: true
-      reviewApiKey:
         required: true
 
 jobs:
@@ -42,8 +37,6 @@ jobs:
          template: ./deploy/main.bicep
          parameters: >
            environmentType=${{ inputs.environmentType }}
-           reviewApiUrl=${{ inputs.reviewApiUrl }}
-           reviewApiKey=${{ secrets.reviewApiKey }}
          deploymentMode: Validate
      - if: inputs.environmentType == 'Production'
        uses: azure/arm-deploy@v1
@@ -54,8 +47,6 @@ jobs:
          template: ./deploy/main.bicep
          parameters: >
            environmentType=${{ inputs.environmentType }}
-           reviewApiUrl=${{ inputs.reviewApiUrl }}
-           reviewApiKey=${{ secrets.reviewApiKey }}
          additionalArguments: --what-if
 
   deploy:
@@ -82,8 +73,24 @@ jobs:
         template: ./deploy/main.bicep
         parameters: >
           environmentType=${{ inputs.environmentType }}
-          reviewApiUrl=${{ inputs.reviewApiUrl }}
-          reviewApiKey=${{ secrets.reviewApiKey }}
+              
+    # Added PowerShell step to set CosmosDB permissions
+    - name: Setup PowerShell
+      uses: actions/setup-powershell@v3
+
+    - name: Install Az.CosmosDB PowerShell Module
+      run: Install-Module -Name Az.CosmosDB -RequiredVersion 1.2.0 -Force -SkipPublisherCheck
+
+    - name: Execute PowerShell script to set permissions
+      run: |
+        New-AzCosmosDBSqlRoleDefinition -AccountName "<YourCosmosDBAccountName>" `
+          -ResourceGroupName ${{ inputs.resourceGroupName }} `
+          -Type CustomRole -RoleName MyReadWriteRole `
+          -DataAction @( `
+            'Microsoft.DocumentDB/databaseAccounts/readMetadata',
+            'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*', `
+            'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*') `
+          -AssignableScope "/" `
 
   smoke-test:
     runs-on: ubuntu-latest

@@ -1,7 +1,13 @@
-# Fetch data from ARM API
-$apiUrl = "https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProvider}/{resourceName}?api-version=2021-04-01"
-$apiResponse = Invoke-RestMethod -Uri $apiUrl -Headers @{ "Authorization" = "Bearer $env:ACCESS_TOKEN" }
+# Fetch data from Azure Rest API
+# Check if the token is about to expire in the next 5 minutes
+$tokenExpiryTime = ... # token expiration time in UNIX timestamp
+$currentTime = [DateTimeOffset]::Now.ToUnixTimeSeconds()
+
+if ($currentTime -ge ($tokenExpiryTime - 300)) {
+    # Token is about to expire, fetch a new one
+    $response = Invoke-RestMethod -Method GET -Headers @{'Metadata'='true'} -Uri 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://management.azure.com/'
+    $AccessToken = $response.access_token
+}
+
 
 # Store in Cosmos DB
-$cosmosDbUri = "https://your-cosmos-db-uri.com/dbs/YourDb/colls/YourCollection/docs"
-Invoke-RestMethod -Method Post -Uri $cosmosDbUri -Body ($apiResponse | ConvertTo-Json) -Headers @{ "Authorization" = "Bearer $env:COSMOS_DB_TOKEN" }
