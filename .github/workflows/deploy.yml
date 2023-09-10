@@ -20,9 +20,6 @@ on:
 jobs:
   validate:
      runs-on: ubuntu-latest
-     permissions:
-      contents: read
-      pull-requests: write
      steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -32,19 +29,6 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      - name: Check if Secrets exist
-        run: echo "First 5 characters of AZURE_CLIENT_ID is ${AZURE_CLIENT_ID:0:5}"
-        env:
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      - name: List current directory and check if Bicep file exists
-        run: |
-          ls -la ./infra/
-      - name: Print environment type
-        run: echo "Environment type is ${{ inputs.environmentType }}"
-      - name: Enable Azure CLI Debug Logging
-        run: az configure --defaults only_show_errors=true
-      - name: List Resource Groups
-        run: az group list --output table
       - name: Run preflight validation
         if: inputs.environmentType != 'Production'
         uses: azure/arm-deploy@v1
@@ -97,29 +81,6 @@ jobs:
             environmentType=${{ inputs.environmentType }}
             githubToken=${{ secrets.GITHUB_TOKEN }}
 
-      # Debugging steps
-      - name: Debug - Check Azure Environment Variables
-        run: |
-          echo "AZURE_CLIENT_ID: $AZURE_CLIENT_ID"
-          echo "AZURE_TENANT_ID: $AZURE_TENANT_ID"
-          echo "AZURE_SUBSCRIPTION_ID: $AZURE_SUBSCRIPTION_ID"
-        env:
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Debug - Check GitHub Token
-        run: |
-          echo "GITHUB_TOKEN: $GITHUB_TOKEN"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Debug - Check Bicep Template Files
-        run: |
-          cat ./infra/main.bicep
-          cat ./infra/frontend.bicep
-          cat ./infra/backend.bicep
-
   smoke-test:
     runs-on: ubuntu-latest
     needs: deploy
@@ -137,3 +98,4 @@ jobs:
           # Invoke-Pester `
           #   -Container $container `
           #   -CI
+        
