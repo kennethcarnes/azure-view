@@ -36,7 +36,7 @@ jobs:
           deploymentName: ${{ github.run_number }}
           resourceGroupName: ${{ inputs.resourceGroupName }}
           scope: resourcegroup
-          template: ./deploy/main.bicep
+          template: ./infra/main.bicep
           parameters: >
             environmentType=${{ inputs.environmentType }}
           deploymentMode: Validate
@@ -47,7 +47,7 @@ jobs:
           failOnStdErr: false
           resourceGroupName: ${{ inputs.resourceGroupName }}
           scope: resourcegroup
-          template: ./deploy/main.bicep
+          template: ./infra/main.bicep
           parameters: >
             environmentType=${{ inputs.environmentType }}
           additionalArguments: --what-if
@@ -75,7 +75,7 @@ jobs:
           deploymentName: ${{ github.run_number }}
           resourceGroupName: ${{ inputs.resourceGroupName }}
           scope: resourcegroup
-          template: ./deploy/main.bicep
+          template: ./infra/main.bicep
           parameters: >
             environmentType=${{ inputs.environmentType }}
 
