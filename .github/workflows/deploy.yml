@@ -34,7 +34,8 @@ jobs:
         env:
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       - name: List current directory and check if Bicep file exists
-        run: ls -la ./infra/
+        run: |
+          ls -la ./infra/
       - name: Print environment type
         run: echo "Environment type is ${{ inputs.environmentType }}"
       - name: Enable Azure CLI Debug Logging
@@ -93,6 +94,29 @@ jobs:
             environmentType=${{ inputs.environmentType }}
             githubToken=${{ secrets.GITHUB_TOKEN }}
 
+      # Debugging steps
+      - name: Debug - Check Azure Environment Variables
+        run: |
+          echo "AZURE_CLIENT_ID: $AZURE_CLIENT_ID"
+          echo "AZURE_TENANT_ID: $AZURE_TENANT_ID"
+          echo "AZURE_SUBSCRIPTION_ID: $AZURE_SUBSCRIPTION_ID"
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Debug - Check GitHub Token
+        run: |
+          echo "GITHUB_TOKEN: $GITHUB_TOKEN"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Debug - Check Bicep Template Files
+        run: |
+          cat ./infra/main.bicep
+          cat ./infra/frontend.bicep
+          cat ./infra/backend.bicep
+
   smoke-test:
     runs-on: ubuntu-latest
     needs: deploy
@@ -110,4 +134,3 @@ jobs:
           # Invoke-Pester `
           #   -Container $container `
           #   -CI
-        
