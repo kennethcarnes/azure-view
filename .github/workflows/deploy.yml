@@ -29,6 +29,16 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Check if Secrets exist
+        run: echo "First 5 characters of AZURE_CLIENT_ID is ${${secrets.AZURE_CLIENT_ID:0:5}}"
+      - name: List current directory and check if Bicep file exists
+        run: ls -la ./infra/
+      - name: Print environment type
+        run: echo "Environment type is ${{ inputs.environmentType }}"
+      - name: Enable Azure CLI Debug Logging
+        run: az configure --defaults only_show_errors=true
+      - name: List Resource Groups
+        run: az group list --output table
       - name: Run preflight validation
         if: inputs.environmentType != 'Production'
         uses: azure/arm-deploy@v1
