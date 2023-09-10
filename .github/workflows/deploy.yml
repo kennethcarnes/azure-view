@@ -39,6 +39,7 @@ jobs:
           template: ./infra/main.bicep
           parameters: >
             environmentType=${{ inputs.environmentType }}
+            githubToken=${{ secrets.GITHUB_TOKEN }}
           deploymentMode: Validate
       - name: Run what-if
         if: inputs.environmentType == 'Production'
@@ -78,6 +79,7 @@ jobs:
           template: ./infra/main.bicep
           parameters: >
             environmentType=${{ inputs.environmentType }}
+            githubToken=${{ secrets.GITHUB_TOKEN }}
 
   smoke-test:
     runs-on: ubuntu-latest
