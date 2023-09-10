@@ -1,6 +1,7 @@
 param swaName string
 param location string
-param swaSku string
+param swaSkuName string
+param swaSkuTier string
 param repositoryUrl string
 param branch string
 @secure()
@@ -13,8 +14,8 @@ resource swa 'Microsoft.Web/staticSites@2022-03-01' = {
   name: swaName
   location: location
   sku: {
-    name: swaSku
-    tier: swaSku
+    name: swaSkuName
+    tier: swaSkuTier
   }
   properties: {
     repositoryUrl: repositoryUrl

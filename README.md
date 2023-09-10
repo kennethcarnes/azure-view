@@ -78,6 +78,3 @@ Data is organized based on Azure namespaces, resource types, and API versions, m
 - `main.bicep`: Orchestrates Azure resources and includes references to `frontend.bicep` and `backend.bicep`.
 - `frontend.bicep`: Sets up the Azure App Service to host the Sunburst Chart created with React and D3.js
 - `backend.bicep`: Sets up an Azure Function which runs the `featch-and-store.ps1` script on initial deployment, and again every 24 hours. It also sets up an Azure Cosmos DB with default automatic indexing, configures a 24 hour TTL, and `resourceType` as the partition key.
-
-## Version Control
-All code is stored in a GitHub repository and is version-controlled using Git.

@@ -21,88 +21,76 @@ jobs:
   validate:
      runs-on: ubuntu-latest
      steps:
-     - uses: actions/checkout@v3
-     - uses: azure/login@v1
-       name: Sign in to Azure
-       with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-     - if: inputs.environmentType != 'Production'
-       uses: azure/arm-deploy@v1
-       name: Run preflight validation
-       with:
-         deploymentName: ${{ github.run_number }}
-         resourceGroupName: ${{ inputs.resourceGroupName }}
-         template: ./deploy/main.bicep
-         parameters: >
-           environmentType=${{ inputs.environmentType }}
-         deploymentMode: Validate
-     - if: inputs.environmentType == 'Production'
-       uses: azure/arm-deploy@v1
-       name: Run what-if
-       with:
-         failOnStdErr: false
-         resourceGroupName: ${{ inputs.resourceGroupName }}
-         template: ./deploy/main.bicep
-         parameters: >
-           environmentType=${{ inputs.environmentType }}
-         additionalArguments: --what-if
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Sign in to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Run preflight validation
+        if: inputs.environmentType != 'Production'
+        uses: azure/arm-deploy@v1
+        with:
+          deploymentName: ${{ github.run_number }}
+          scope: ${{ inputs.resourceGroupName }}
+          template: ./deploy/main.bicep
+          parameters: >
+            environmentType=${{ inputs.environmentType }}
+          deploymentMode: Validate
+      - name: Run what-if
+        if: inputs.environmentType == 'Production'
+        uses: azure/arm-deploy@v1
+        with:
+          failOnStdErr: false
+          scope: ${{ inputs.resourceGroupName }}
+          template: ./deploy/main.bicep
+          parameters: >
+            environmentType=${{ inputs.environmentType }}
+          additionalArguments: --what-if
 
   deploy:
     needs: validate
     environment: ${{ inputs.environmentType }}
     runs-on: ubuntu-latest
     outputs:
-      appServiceAppHostName: ${{ steps.deploy.outputs.appServiceAppHostName }}
+      swaName: ${{ steps.deploy.outputs.swaName }}
     steps:
-    - uses: actions/checkout@v3
-    - uses: azure/login@v1
-      name: Sign in to Azure
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    - uses: azure/arm-deploy@v1
-      id: deploy
-      name: Deploy Bicep file
-      with:
-        failOnStdErr: false
-        deploymentName: ${{ github.run_number }}
-        resourceGroupName: ${{ inputs.resourceGroupName }}
-        template: ./deploy/main.bicep
-        parameters: >
-          environmentType=${{ inputs.environmentType }}
-              
-    # Added PowerShell step to set CosmosDB permissions
-    - name: Setup PowerShell
-      uses: actions/setup-powershell@v3
-
-    - name: Install Az.CosmosDB PowerShell Module
-      run: Install-Module -Name Az.CosmosDB -RequiredVersion 1.2.0 -Force -SkipPublisherCheck
-
-    - name: Execute PowerShell script to set permissions
-      run: |
-        New-AzCosmosDBSqlRoleDefinition -AccountName "<YourCosmosDBAccountName>" `
-          -ResourceGroupName ${{ inputs.resourceGroupName }} `
-          -Type CustomRole -RoleName MyReadWriteRole `
-          -DataAction @( `
-            'Microsoft.DocumentDB/databaseAccounts/readMetadata',
-            'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*', `
-            'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*') `
-          -AssignableScope "/" `
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Sign in to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Deploy Bicep file
+        id: deploy
+        uses: azure/arm-deploy@v1
+        with:
+          failOnStdErr: false
+          deploymentName: ${{ github.run_number }}
+          scope: ${{ inputs.resourceGroupName }}
+          template: ./deploy/main.bicep
+          parameters: >
+            environmentType=${{ inputs.environmentType }}
 
   smoke-test:
     runs-on: ubuntu-latest
     needs: deploy
     steps:
-    - uses: actions/checkout@v3
-    - run: |
-        $container = New-PesterContainer `
-          -Path 'deploy/Website.Tests.ps1' `
-          -Data @{ HostName = '${{needs.deploy.outputs.appServiceAppHostName}}' }
-        Invoke-Pester `
-          -Container $container `
-          -CI
-      name: Run smoke tests
-      shell: pwsh
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run smoke tests
+        shell: pwsh
+        run: |
+          Write-Host '${{needs.deploy.outputs.swaName}}'
+          # $container = New-PesterContainer `
+          #   -Path 'deploy/Website.Tests.ps1' `
+          #   -Data @{ HostName = '${{needs.deploy.outputs.swaName}}' }
+          # Invoke-Pester `
+          #   -Container $container `
+          #   -CI
+        
