@@ -2,7 +2,7 @@
 targetScope = 'resourceGroup'
 
 // Shared parameters for both frontend and backend
-param location string // Azure location for deployment
+param location string = 'westus2' // Azure location for deployment
 param environmentType string = 'Test'
 param branch string = 'main'
 
