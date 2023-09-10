@@ -5,7 +5,7 @@ targetScope = 'resourceGroup'
 param location string = 'westus2' // Azure location for deployment
 param environmentType string = 'Test'
 param branch string = 'main'
-param githubToken string
+param repositoryToken string
 
 // Choose frontend parameters based on environment type
 var selectedFrontendParams = environmentType == 'Test' ? {
@@ -13,13 +13,13 @@ var selectedFrontendParams = environmentType == 'Test' ? {
   swaSkuName: 'Free'
   swaSkuTier: 'Free'
   repositoryUrl: 'https://github.com/kennethcarnes/azure-view'
-  repositoryToken: githubToken
+  repositoryToken: repositoryToken
 } : {
   swaName: 'swa-azure-view-prod-001'
   swaSkuName: 'Basic'
   swaSkuTier: 'Basic'
   repositoryUrl: 'https://github.com/kennethcarnes/azure-view'
-  repositoryToken: githubToken
+  repositoryToken: repositoryToken
 }
 
 // Choose backend parameters based on environment type

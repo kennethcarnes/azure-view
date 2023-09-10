@@ -17,11 +17,6 @@ on:
       AZURE_SUBSCRIPTION_ID:
         required: true
 
-permissions:
-  id-token: write # This is required for requesting the JWT
-  contents: read  # This is required for actions/checkout
-        
-
 jobs:
   validate:
      runs-on: ubuntu-latest
@@ -44,7 +39,7 @@ jobs:
           template: ./infra/main.bicep
           parameters: >
             environmentType=${{ inputs.environmentType }}
-            githubToken=${{ secrets.GITHUB_TOKEN }}
+            repositoryToken=${{ secrets.REPOSITORY_TOKEN }}
           deploymentMode: Validate
       - name: Run what-if
         if: inputs.environmentType == 'Production'
@@ -56,6 +51,7 @@ jobs:
           template: ./infra/main.bicep
           parameters: >
             environmentType=${{ inputs.environmentType }}
+            repositoryToken=${{ secrets.REPOSITORY_TOKEN }}
           additionalArguments: --what-if
 
   deploy:
@@ -84,7 +80,7 @@ jobs:
           template: ./infra/main.bicep
           parameters: >
             environmentType=${{ inputs.environmentType }}
-            githubToken=${{ secrets.GITHUB_TOKEN }}
+            repositoryToken=${{ secrets.REPOSITORY_TOKEN }}
 
   smoke-test:
     runs-on: ubuntu-latest
