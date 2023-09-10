@@ -1,4 +1,4 @@
-name: deploy 
+name: deploy
 
 on:
   workflow_call:
@@ -16,10 +16,6 @@ on:
         required: true
       AZURE_SUBSCRIPTION_ID:
         required: true
-
-permissions:
-  contents: read
-  pull-requests: write
 
 jobs:
   validate:
