@@ -10,6 +10,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Build Bicep
+      - name: Build main.bicep
         run: |
           az bicep build --file ./infra/main.bicep
+
+      - name: Build frontend.bicep
+        run: |
+          az bicep build --file ./infra/frontend.bicep
+
+      - name: Build backend.bicep
+        run: |
+          az bicep build --file ./infra/backend.bicep
