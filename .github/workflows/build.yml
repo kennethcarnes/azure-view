@@ -1,15 +1,15 @@
-name: lint
+name: build
 
 on:
   workflow_call:
 
 jobs:
-  lint:
+  bicep-build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Lint code
+      - name: Build Bicep
         run: |
-          az bicep build --file ./main.bicep
+          az bicep build --file ./infra/main.bicep

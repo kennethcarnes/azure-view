@@ -12,12 +12,12 @@ permissions:
 
 jobs:
 
-  lint:
-    uses: ./.github/workflows/lint.yml
+  bicep-build:
+    uses: ./.github/workflows/build.yml
 
   deploy-test:
     uses: ./.github/workflows/deploy.yml
-    needs: lint
+    needs: bicep-build
     with:
       environmentType: Test
       resourceGroupName: rg-azure-view-test-001
