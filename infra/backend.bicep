@@ -28,7 +28,7 @@ resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {
   name: hostingPlanName
   location: location
   sku: {
-    name: 'Y1'
+    name: 'F1'
     tier: 'Dynamic'
   }
   properties: {}
