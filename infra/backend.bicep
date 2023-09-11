@@ -4,13 +4,15 @@ param functionAppKind string
 param storageAccountName string
 param storageAccountSkuName string
 param storageAccountKind string
-param appServicePlanName string
+param hostingPlanName string
 param cosmosDbAccountName string
 param cosmosDbAccountKind string
 param cosmosDbName string
 param cosmosDbContainerName string
 param cosmosDbThroughput int
 
+
+// https://learn.microsoft.com/en-us/azure/azure-functions/functions-infrastructure-as-code?tabs=bicep#deploy-on-consumption-plan
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   name: storageAccountName
   location: location
@@ -22,13 +24,23 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   }
 }
 
+resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {
+  name: hostingPlanName
+  location: location
+  sku: {
+    name: 'Y1'
+    tier: 'Dynamic'
+  }
+  properties: {}
+}
+
 resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
   name: functionAppName
   location: location
   kind: functionAppKind
   identity: { type: 'SystemAssigned' }
   properties: {
-    serverFarmId: resourceId('Microsoft.Web/serverfarms', appServicePlanName)
+    serverFarmId: hostingPlan.id
     siteConfig: {
       appSettings: [
         { name: 'AzureWebJobsStorage', value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}' }

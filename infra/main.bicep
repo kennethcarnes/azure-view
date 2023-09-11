@@ -28,8 +28,8 @@ var selectedBackendParams = environmentType == 'Test' ? {
   functionAppKind: 'functionapp'
   storageAccountName: 'stazureviewtest001'
   storageAccountSkuName: 'Standard_LRS'
-  storageAccountKind: 'Standard_LRS'
-  appServicePlanName: 'asp-azure-view-test-001'
+  storageAccountKind: 'StorageV2'
+  hostingPlanName: 'hostplan-azure-view-test-001'
   cosmosDbAccountName: 'costab-azure-view-test-001'
   cosmosDbAccountKind: 'GlobalDocumentDB'
   cosmosDbName: 'cosdb-azure-view-test-001'
@@ -41,7 +41,7 @@ var selectedBackendParams = environmentType == 'Test' ? {
   storageAccountName: 'stazureviewprod001'
   storageAccountSkuName: 'Standard_LRS'
   storageAccountKind: 'Standard_LRS'
-  appServicePlanName: 'asp-azure-view-prod-001'
+  hostingPlanName: 'hostplan-azure-view-prod-001'
   cosmosDbAccountName: 'costab-azure-view-prod-001'
   cosmosDbAccountKind: 'GlobalDocumentDB'
   cosmosDbName: 'cosdb-azure-view-prod-001'
@@ -73,7 +73,7 @@ module backend './backend.bicep' = {
     storageAccountName: selectedBackendParams.storageAccountName
     storageAccountSkuName: selectedBackendParams.storageAccountSkuName
     storageAccountKind: selectedBackendParams.storageAccountKind
-    appServicePlanName: selectedBackendParams.appServicePlanName
+    hostingPlanName: selectedBackendParams.hostingPlanName
     cosmosDbAccountName: selectedBackendParams.cosmosDbAccountName
     cosmosDbAccountKind: selectedBackendParams.cosmosDbAccountKind
     cosmosDbName: selectedBackendParams.cosmosDbName
