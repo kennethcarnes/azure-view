@@ -69,7 +69,7 @@ resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-05-15' = {
       failoverPriority: 0
       isZoneRedundant: false
     }]
-  }
+  } 
 }
 
 resource cosmosDb 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2022-05-15' = {
