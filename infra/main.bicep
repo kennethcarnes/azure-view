@@ -16,8 +16,8 @@ var selectedFrontendParams = environmentType == 'Test' ? {
   repositoryToken: repositoryToken
 } : {
   swaName: 'swa-azure-view-prod-001'
-  swaSkuName: 'Basic'
-  swaSkuTier: 'Basic'
+  swaSkuName: 'Standard'
+  swaSkuTier: 'Standard'
   repositoryUrl: 'https://github.com/kennethcarnes/azure-view'
   repositoryToken: repositoryToken
 }
@@ -27,7 +27,7 @@ var selectedBackendParams = environmentType == 'Test' ? {
   functionAppName: 'func-azure-view-test-001'
   functionAppKind: 'functionapp'
   storageAccountName: 'stazureviewtest001'
-  storageAccountSkuName: 'Standard_LRS'
+  storageAccountSkuName: 'StorageV2'
   storageAccountKind: 'StorageV2'
   hostingPlanName: 'hostplan-azure-view-test-001'
   cosmosDbAccountName: 'costab-azure-view-test-001'
@@ -39,8 +39,8 @@ var selectedBackendParams = environmentType == 'Test' ? {
   functionAppName: 'func-azure-view-prod-001'
   functionAppKind: 'functionapp'
   storageAccountName: 'stazureviewprod001'
-  storageAccountSkuName: 'Standard_LRS'
-  storageAccountKind: 'Standard_LRS'
+  storageAccountSkuName: 'StorageV2'
+  storageAccountKind: 'StorageV2'
   hostingPlanName: 'hostplan-azure-view-prod-001'
   cosmosDbAccountName: 'costab-azure-view-prod-001'
   cosmosDbAccountKind: 'GlobalDocumentDB'
