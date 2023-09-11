@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    /* Dark background similar to Microsoft Learn */
+    body {
+      background-color: #1b1b1b;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    /* Center the Plotly chart */
+    #sunburstPlot {
+      width: 80%;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+
+<div id="sunburstPlot"></div>
+
+<script>
+  // Mock data resembling Azure REST API structure
+  const mockData = {
+    ids: [
+      "Microsoft.Compute",
+      "Microsoft.Compute/virtualMachines",
+      "Microsoft.Compute/virtualMachines/2021-07-01",
+      "Microsoft.Compute/virtualMachines/2020-12-01",
+      "Microsoft.Compute/disks",
+      "Microsoft.Compute/disks/2021-07-01",
+      "Microsoft.Compute/disks/2020-12-01"
+    ],
+    labels: [
+      "Microsoft.Compute",
+      "Virtual Machines",
+      "2021-07-01",
+      "2020-12-01",
+      "Disks",
+      "2021-07-01",
+      "2020-12-01"
+    ],
+    parents: [
+      "",
+      "Microsoft.Compute",
+      "Microsoft.Compute/virtualMachines",
+      "Microsoft.Compute/virtualMachines",
+      "Microsoft.Compute",
+      "Microsoft.Compute/disks",
+      "Microsoft.Compute/disks"
+    ]
+  };
+
+  // Create the sunburst chart
+  Plotly.newPlot('sunburstPlot', [{
+    type: "sunburst",
+    ids: mockData.ids,
+    labels: mockData.labels,
+    parents: mockData.parents
+  }], {
+    margin: {l: 0, r: 0, b: 0, t: 0},
+    sunburstcolorway: ["#636efa", "#ef553b", "#00cc96"],
+    paper_bgcolor: "#1b1b1b",
+    font: {
+      color: "#ffffff"
+    }
+  });
+
+  // Uncomment the following code to fetch real data from Cosmos DB once you have the endpoint and keys
+  /*
+  const apiUrl = 'https://your-cosmosdb-endpoint.com/data';
+  fetch(apiUrl)
+    .then(response => response.json())
+    .then(data => {
+      // Update the sunburst chart with the fetched data
+      // You'll need to transform the data to match the 'ids', 'labels', and 'parents' format
+      // ...
+      Plotly.update('sunburstPlot', {
+        ids: transformedData.ids,
+        labels: transformedData.labels,
+        parents: transformedData.parents
+      });
+    })
+    .catch(error => console.error('Error fetching data:', error));
+  */
+</script>
+
+</body>
+</html>

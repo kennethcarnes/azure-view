@@ -1,5 +1,4 @@
 # Azure REST API Visualization Dashboard
-
 This is a public website that displays a daily-updated dashboard designed to visualize the hierarchy and availability of Azure's REST API offerings. Utilizing a browsable Sunburst Chart, it provides a comprehensive yet simplified representation of Azure namespaces, resource types, and API versions.
 
 ## Data Flow
