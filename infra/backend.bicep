@@ -4,7 +4,7 @@ param functionAppKind string
 param storageAccountName string
 param storageAccountSkuName string
 param storageAccountKind string
-param hostingPlanName string
+param appServicePlanName string
 param cosmosDbAccountName string
 param cosmosDbAccountKind string
 param cosmosDbName string
@@ -24,8 +24,8 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   }
 }
 
-resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {
-  name: hostingPlanName
+resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' = {
+  name: appServicePlanName
   location: location
   sku: {
     name: 'Y1'
@@ -40,7 +40,7 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
   kind: functionAppKind
   identity: { type: 'SystemAssigned' }
   properties: {
-    serverFarmId: hostingPlan.id
+    serverFarmId: appServicePlan.id
     siteConfig: {
       appSettings: [
         { name: 'AzureWebJobsStorage', value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}' }

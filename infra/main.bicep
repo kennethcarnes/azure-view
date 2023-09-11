@@ -29,11 +29,11 @@ var selectedBackendParams = environmentType == 'Test' ? {
   storageAccountName: 'stazureviewtest001'
   storageAccountSkuName: 'StorageV2'
   storageAccountKind: 'StorageV2'
-  hostingPlanName: 'hostplan-azure-view-test-001'
-  cosmosDbAccountName: 'costab-azure-view-test-001'
+  appServicePlanName: 'func-asp-azure-view-test-001'
+  cosmosDbAccountName: 'cosmos-tab-azure-view-test-001'
   cosmosDbAccountKind: 'GlobalDocumentDB'
-  cosmosDbName: 'cosdb-azure-view-test-001'
-  cosmosDbContainerName: 'coscont-azure-view-test-001'
+  cosmosDbName: 'cosmos-db-azure-view-test-001'
+  cosmosDbContainerName: 'cosmos-cont-azure-view-test-001'
   cosmosDbThroughput: 400
 } : {
   functionAppName: 'func-azure-view-prod-001'
@@ -41,11 +41,11 @@ var selectedBackendParams = environmentType == 'Test' ? {
   storageAccountName: 'stazureviewprod001'
   storageAccountSkuName: 'StorageV2'
   storageAccountKind: 'StorageV2'
-  hostingPlanName: 'hostplan-azure-view-prod-001'
-  cosmosDbAccountName: 'costab-azure-view-prod-001'
+  appServicePlanName: 'func-asp-azure-view-prod-001'
+  cosmosDbAccountName: 'cosmos-tab-azure-view-prod-001'
   cosmosDbAccountKind: 'GlobalDocumentDB'
-  cosmosDbName: 'cosdb-azure-view-prod-001'
-  cosmosDbContainerName: 'coscont-azure-view-prod-001'
+  cosmosDbName: 'cosmos-db-azure-view-prod-001'
+  cosmosDbContainerName: 'cosmos-cont-azure-view-prod-001'
   cosmosDbThroughput: 400
 }
 
@@ -73,7 +73,7 @@ module backend './backend.bicep' = {
     storageAccountName: selectedBackendParams.storageAccountName
     storageAccountSkuName: selectedBackendParams.storageAccountSkuName
     storageAccountKind: selectedBackendParams.storageAccountKind
-    hostingPlanName: selectedBackendParams.hostingPlanName
+    appServicePlanName: selectedBackendParams.appServicePlanName
     cosmosDbAccountName: selectedBackendParams.cosmosDbAccountName
     cosmosDbAccountKind: selectedBackendParams.cosmosDbAccountKind
     cosmosDbName: selectedBackendParams.cosmosDbName
