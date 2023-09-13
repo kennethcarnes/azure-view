@@ -39,41 +39,32 @@ Data is organized based on Azure namespaces, resource types, and API versions, m
         └── API Version
     ```
 
-## CI/CD
+## CI/CD Orchestration
 - Deployment to multiple environments via Github Actions
-  ![Deployment Screenshot](image-3.png)  
+  ![Deployment Screenshot](/images/image-3.png)  
   [Learn More](https://learn.microsoft.com/en-us/training/modules/manage-multiple-environments-using-bicep-github-actions/2-understand-environments)
   
 - Separate workload identities for each environment  
-  ![Workload Identities](image-1.png)  
+  ![Workload Identities](/images/image-1.png)  
   [Learn More](https://learn.microsoft.com/en-us/training/modules/manage-multiple-environments-using-bicep-github-actions/4-exercise-set-up-environment?pivots=powershell)
 
 - Reusable Workflows and workflow inputs handle similarities and differences between environments
   [Learn More](https://learn.microsoft.com/en-us/training/modules/manage-multiple-environments-using-bicep-github-actions/3-handle-similarities-between-environments-using-reusable-workflows)
-  
-- Parameter values are stored in `.bicepparam` files, while sensative values are stored in Github Actions Secrets
 
 - A protection rule is added to require approval for deployment to the production environment
 
-### Tasks and Environments
-
-| Task       | Environments                | 
-|------------|-----------------------------|
-| Lint       | Neither (does not apply)    |
-| Validate   | Test only                   |
-| Preview    | Production only             |
-| Deploy     | Both environments           |
-| Smoke Test | Both environments           |
-
-## Resource Cleanup  
-    ```powershell
-    Remove-AzResourceGroup -Name "rg-azure-view-test-001" -Force -AsJob
-
-    Remove-AzResourceGroup -Name "rg-azure-view-prod-001" -Force -AsJob
-    ```
-
-## Infrastructure as Code (IaC)
+## IaC Orchestration
 
 - `main.bicep`: Orchestrates Azure resources and includes references to `frontend.bicep` and `backend.bicep`.
+
 - `frontend.bicep`: Sets up the Azure App Service to host the Sunburst Chart created with React and D3.js
+
 - `backend.bicep`: Sets up an Azure Function which runs the `featch-and-store.ps1` script on initial deployment, and again every 24 hours. It also sets up an Azure Cosmos DB with default automatic indexing, configures a 24 hour TTL, and `resourceType` as the partition key.
+
+## Parameters and Secrets
+
+- Sensative or secret values that pertain to CI/CD are stored in Github Actions Secrets
+
+- Sensative or secret values that pertain to infrastructure are stored in Azure Key vault
+
+- Non-sensative parameter values that pertain to pertain to infrastructure are stored in `main.bicep`

@@ -21,14 +21,17 @@ jobs:
   validate:
      runs-on: ubuntu-latest
      steps:
+
       - name: Checkout repository
         uses: actions/checkout@v3
+
       - name: Sign in to Azure
         uses: azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Run preflight validation
         if: inputs.environmentType != 'Production'
         uses: azure/arm-deploy@v1
@@ -41,6 +44,7 @@ jobs:
             environmentType=${{ inputs.environmentType }}
             repositoryToken=${{ secrets.REPOSITORY_TOKEN }}
           deploymentMode: Validate
+
       - name: Run what-if
         if: inputs.environmentType == 'Production'
         uses: azure/arm-deploy@v1
@@ -60,15 +64,25 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       swaName: ${{ steps.deploy.outputs.swaName }}
+      cosmosDbAccountName: ${{ steps.deploy.outputs.cosmosDbAccountName }}
+      cosmosDbDatabaseName: ${{ steps.deploy.outputs.cosmosDbDatabaseName }}
+      cosmosDbContainerName: ${{ steps.deploy.outputs.cosmosDbContainerName }}
+      cosmosDbPartitionKey: ${{ steps.deploy.outputs.cosmosDbPartitionKey }}
+      cosmosDbUser: ${{ steps.deploy.outputs.cosmosDbUser }}
+      cosmosDbPassword: ${{ steps.deploy.outputs.cosmosDbPassword }}
+
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v3
+
       - name: Sign in to Azure
         uses: azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Deploy Bicep file
         id: deploy
         uses: azure/arm-deploy@v1
@@ -81,11 +95,30 @@ jobs:
           parameters: >
             environmentType=${{ inputs.environmentType }}
             repositoryToken=${{ secrets.REPOSITORY_TOKEN }}
+            tenantId=${{ secrets.AZURE_TENANT_ID }}
+
+      - name: Set Azure Function Permissions for Cosmos DB
+        shell: pwsh
+        run: |
+          .\scripts\set-permissions.ps1 `
+            -CosmosDbAccountName ${{ steps.deploy.outputs.cosmosDbAccountName }} `
+            -CosmosDbDatabaseName ${{ steps.deploy.outputs.cosmosDbDatabaseName }} `
+            -CosmosDbContainerName ${{ steps.deploy.outputs.cosmosDbContainerName }} `
+            -CosmosDbPartitionKey ${{ steps.deploy.outputs.cosmosDbPartitionKey }} `
+
+      - name: Set Azure Function Permissions for Key Vault
+        shell: pwsh
+        run: |
+          .\scripts\set-permissions.ps1 `
+            -KeyVaultName ${{ steps.deploy.outputs.keyVaultName }} `
+            -KeyVaultSecretName ${{ steps.deploy.outputs.keyVaultSecretName }} `
+            -KeyVaultSecretValue ${{ steps.deploy.outputs.keyVaultSecretValue }}
 
   smoke-test:
     runs-on: ubuntu-latest
     needs: deploy
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v3
 

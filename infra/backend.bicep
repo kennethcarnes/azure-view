@@ -1,23 +1,29 @@
 param location string
 param functionAppName string
-param functionAppKind string
 param storageAccountName string
-param storageAccountSkuName string
-param storageAccountKind string
 param appServicePlanName string
+param keyVaultName string
+param appConfigName string
+param tenantId string
 param cosmosDbAccountName string
-param cosmosDbAccountKind string
 param cosmosDbName string
 param cosmosDbContainerName string
-param cosmosDbThroughput int
+param logAnalyticsWorkspaceId string
+
+// Outputs
+output cosmosDbAccountNameOutput string = cosmosDbAccountName
+output cosmosDbNameOutput string = cosmosDbName
+output cosmosDbContainerNameOutput string = cosmosDbContainerName
+
+
 
 
 // https://learn.microsoft.com/en-us/azure/azure-functions/functions-infrastructure-as-code?tabs=bicep#deploy-on-consumption-plan
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   name: storageAccountName
   location: location
-  sku: { name: storageAccountSkuName }
-  kind: storageAccountKind
+  sku: { name: 'Standard_LRS' }
+  kind: 'StorageV2'
   properties: {
     supportsHttpsTrafficOnly: true
     defaultToOAuthAuthentication: true
@@ -37,7 +43,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' = {
 resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
   name: functionAppName
   location: location
-  kind: functionAppKind
+  kind: 'functionapp'
   identity: { type: 'SystemAssigned' }
   properties: {
     serverFarmId: appServicePlan.id
@@ -46,23 +52,83 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
         { name: 'AzureWebJobsStorage', value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}' }
         { name: 'FUNCTIONS_EXTENSION_VERSION', value: '~4' }
         { name: 'FUNCTIONS_WORKER_RUNTIME', value: 'PowerShell' }
+        { name: 'APPINSIGHTS_INSTRUMENTATIONKEY', value: applicationInsights.properties.InstrumentationKey}
+        { name: 'DEBUG', value: 'false' }  // Control debug logs
       ]
-      ftpsState: 'FtpsOnly'
+      ftpsState: 'Disabled'
       minTlsVersion: '1.2'
     }
     httpsOnly: true
   }
 }
 
+resource keyVault 'Microsoft.KeyVault/vaults@2022-02-01-preview' = {
+  name: keyVaultName
+  location: location
+  properties: {
+    sku: {
+      family: 'A'
+      name: 'standard'
+    }
+    tenantId: tenantId
+  }
+}
+
+resource appConfig 'Microsoft.AppConfiguration/configurationStores@2023-03-01' = {
+  name: appConfigName
+  location: location
+  sku: {
+    name: 'free'
+  }
+}
+
+// Azure Monitor resource logs for Azure Storage
+resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2021-09-01' existing = {
+  name: 'default'
+  parent: storageAccount
+}
+
+resource storageDataPlaneLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${storageAccountName}-logs'
+  scope: blobService
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        category: 'StorageWrite'
+        enabled: false  // Disable by default, enable only if necessary
+      }
+    ]
+    metrics: [
+      {
+        category: 'Transaction'
+        enabled: true
+      }
+    ]
+  }
+}
+
+// Application Insights with minimal settings for cost-efficiency
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: '${functionAppName}-appinsights'
+  location: location
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    // Include more properties here as needed
+    RetentionInDays: 1  // 1 day retention for cost-efficiency
+  }
+}
+
 resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-05-15' = {
   name: cosmosDbAccountName
   location: location
-  kind: cosmosDbAccountKind
+  kind: 'GlobalDocumentDB'
   properties: {
     databaseAccountOfferType: 'Standard'
     enableAutomaticFailover: false
     consistencyPolicy: {
-      defaultConsistencyLevel: 'Session'
+      defaultConsistencyLevel: 'Eventual'
     }
     locations: [{
       locationName: location
@@ -92,6 +158,5 @@ resource cosmosDbContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/c
         paths: [ '/resourceType' ]
       }
     }
-    options: { throughput: cosmosDbThroughput }
   }
 }

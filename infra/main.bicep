@@ -6,6 +6,7 @@ param location string = 'centralus' // Azure location for deployment
 param environmentType string = 'Test'
 param branch string = 'main'
 param repositoryToken string
+param tenantId string
 
 // Choose frontend parameters based on environment type
 var selectedFrontendParams = environmentType == 'Test' ? {
@@ -27,26 +28,20 @@ var selectedBackendParams = environmentType == 'Test' ? {
   functionAppName: 'func-azure-view-test-001'
   functionAppKind: 'functionapp'
   storageAccountName: 'stazureviewtest001'
-  storageAccountSkuName: 'Standard_LRS'
-  storageAccountKind: 'StorageV2'
-  appServicePlanName: 'func-asp-azure-view-test-001'
-  cosmosDbAccountName: 'cosmos-tab-azure-view-test-001'
-  cosmosDbAccountKind: 'GlobalDocumentDB'
-  cosmosDbName: 'cosmos-db-azure-view-test-001'
-  cosmosDbContainerName: 'cosmos-cont-azure-view-test-001'
-  cosmosDbThroughput: 400
+  appServicePlanName: 'asp-azure-view-test-001'
+  logAnalyticsWorkspaceId: 'law-azure-view-test-001'
+  cosmosDbAccountName: 'costab-azure-view-test-001'
+  cosmosDbName: 'cosdb-azure-view-test-001'
+  cosmosDbContainerName: 'coscont-azure-view-test-001'
 } : {
   functionAppName: 'func-azure-view-prod-001'
   functionAppKind: 'functionapp'
   storageAccountName: 'stazureviewprod001'
-  storageAccountSkuName: 'Standard_LRS'
-  storageAccountKind: 'StorageV2'
-  appServicePlanName: 'func-asp-azure-view-prod-001'
-  cosmosDbAccountName: 'cosmos-tab-azure-view-prod-001'
-  cosmosDbAccountKind: 'GlobalDocumentDB'
-  cosmosDbName: 'cosmos-db-azure-view-prod-001'
-  cosmosDbContainerName: 'cosmos-cont-azure-view-prod-001'
-  cosmosDbThroughput: 400
+  appServicePlanName: 'asp-azure-view-prod-001'
+  logAnalyticsWorkspaceId: 'law-azure-view-prod-001'
+  cosmosDbAccountName: 'costab-azure-view-prod-001'
+  cosmosDbName: 'cosdb-azure-view-prod-001'
+  cosmosDbContainerName: 'coscont-azure-view-prod-001'
 }
 
 // Deploy frontend module
@@ -68,16 +63,15 @@ module backend './backend.bicep' = {
   name: 'backendDeployment'
   params: {
     location: location
+    tenantId: tenantId
     functionAppName: selectedBackendParams.functionAppName
-    functionAppKind: selectedBackendParams.functionAppKind
     storageAccountName: selectedBackendParams.storageAccountName
-    storageAccountSkuName: selectedBackendParams.storageAccountSkuName
-    storageAccountKind: selectedBackendParams.storageAccountKind
     appServicePlanName: selectedBackendParams.appServicePlanName
+    appConfigName: selectedBackendParams.functionAppName
+    keyVaultName: selectedBackendParams.functionAppName
+    logAnalyticsWorkspaceId: selectedBackendParams.functionAppName
     cosmosDbAccountName: selectedBackendParams.cosmosDbAccountName
-    cosmosDbAccountKind: selectedBackendParams.cosmosDbAccountKind
     cosmosDbName: selectedBackendParams.cosmosDbName
     cosmosDbContainerName: selectedBackendParams.cosmosDbContainerName
-    cosmosDbThroughput: selectedBackendParams.cosmosDbThroughput
   }
 }
