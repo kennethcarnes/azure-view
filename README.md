@@ -30,15 +30,6 @@ Data is organized based on Azure namespaces, resource types, and API versions, m
     }
     ```
 
-- Hierarchy:
-    ```
-    Provider Namespace
-    │
-    └── Resource Type
-        │
-        └── API Version
-    ```
-
 ## CI/CD Orchestration
 - Deployment to multiple environments via Github Actions
   ![Deployment Screenshot](/images/image-3.png)  
@@ -55,11 +46,11 @@ Data is organized based on Azure namespaces, resource types, and API versions, m
 
 ## IaC Orchestration
 
-- `main.bicep`: Orchestrates Azure resources and includes references to `frontend.bicep` and `backend.bicep`.
+- `main.bicep`: Orchestrates frontend and backend resource deployments.
 
-- `frontend.bicep`: Sets up the Azure App Service to host the Sunburst Chart created with React and D3.js
+- `frontend.bicep`: Sets up the Azure App Service to host the Sunburst Chart created with [Plotly](https://plotly.com/)
 
-- `backend.bicep`: Sets up an Azure Function which runs the `featch-and-store.ps1` script on initial deployment, and again every 24 hours. It also sets up an Azure Cosmos DB with default automatic indexing, configures a 24 hour TTL, and `resourceType` as the partition key.
+- `backend.bicep`: Sets up an Azure Function which runs the `fetch-and-store.ps1` script on initial deployment, and again every 24 hours. It also sets up an Azure Cosmos DB with default automatic indexing, configures a 24 hour TTL, and `resourceType` as the partition key.
 
 ## Parameters and Secrets
 
@@ -67,4 +58,8 @@ Data is organized based on Azure namespaces, resource types, and API versions, m
 
 - Sensative or secret values that pertain to infrastructure are stored in Azure Key vault
 
-- Non-sensative parameter values that pertain to pertain to infrastructure are stored in `main.bicep`
+- Non-sensative parameter values that pertain to infrastructure are stored in `main.bicep`
+
+## Security
+
+After deployment is complete, a runner exectures the `set-permission.ps1` script. This script assigns scoped permissions to the system assigned managed identity of the Azure Function.
