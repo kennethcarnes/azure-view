@@ -26,19 +26,21 @@ var selectedFrontendParams = environmentType == 'Test' ? {
 // Choose backend parameters based on environment type
 var selectedBackendParams = environmentType == 'Test' ? {
   functionAppName: 'func-azure-view-test-001'
-  functionAppKind: 'functionapp'
   storageAccountName: 'stazureviewtest001'
   appServicePlanName: 'asp-azure-view-test-001'
   logAnalyticsWorkspaceName: 'law-azure-view-test-001'
+  appConfigName: 'appcs-azure-view-test-001'
+  appInsightsName: 'appi-azure-view-test-001'
   cosmosDbAccountName: 'costab-azure-view-test-001'
   cosmosDbName: 'cosdb-azure-view-test-001'
   cosmosDbContainerName: 'coscont-azure-view-test-001'
 } : {
   functionAppName: 'func-azure-view-prod-001'
-  functionAppKind: 'functionapp'
   storageAccountName: 'stazureviewprod001'
   appServicePlanName: 'asp-azure-view-prod-001'
   logAnalyticsWorkspaceName: 'law-azure-view-prod-001'
+  appConfigName: 'appcs-azure-view-prod-001'
+  appInsightsName: 'appi-azure-view-prod-001'
   cosmosDbAccountName: 'costab-azure-view-prod-001'
   cosmosDbName: 'cosdb-azure-view-prod-001'
   cosmosDbContainerName: 'coscont-azure-view-prod-001'
@@ -67,9 +69,10 @@ module backend './backend.bicep' = {
     functionAppName: selectedBackendParams.functionAppName
     storageAccountName: selectedBackendParams.storageAccountName
     appServicePlanName: selectedBackendParams.appServicePlanName
-    appConfigName: selectedBackendParams.functionAppName
+    appConfigName: selectedBackendParams.appConfigName
     keyVaultName: selectedBackendParams.functionAppName
     logAnalyticsWorkspaceName: selectedBackendParams.functionAppName
+    appInsightsName: selectedBackendParams.appInsightsName
     cosmosDbAccountName: selectedBackendParams.cosmosDbAccountName
     cosmosDbName: selectedBackendParams.cosmosDbName
     cosmosDbContainerName: selectedBackendParams.cosmosDbContainerName

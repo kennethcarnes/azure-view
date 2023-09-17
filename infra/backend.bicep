@@ -9,6 +9,7 @@ param cosmosDbAccountName string
 param cosmosDbName string
 param cosmosDbContainerName string
 param logAnalyticsWorkspaceName string
+param appInsightsName string
 
 // Outputs
 output cosmosDbAccountNameOutput string = cosmosDbAccountName
@@ -52,8 +53,8 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
         { name: 'AzureWebJobsStorage', value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}' }
         { name: 'FUNCTIONS_EXTENSION_VERSION', value: '~4' }
         { name: 'FUNCTIONS_WORKER_RUNTIME', value: 'PowerShell' }
-        { name: 'APPINSIGHTS_INSTRUMENTATIONKEY', value: applicationInsights.properties.InstrumentationKey}
-        { name: 'DEBUG', value: 'false' }  // Control debug logs
+        { name: 'APPINSIGHTS_INSTRUMENTATIONKEY', value: appInsights.properties.InstrumentationKey}
+        { name: 'DEBUG', value: 'true' }  // Control debug logs
       ]
       ftpsState: 'Disabled'
       minTlsVersion: '1.2'
@@ -111,7 +112,7 @@ resource storageDataPlaneLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-
     logs: [
       {
         category: 'StorageWrite'
-        enabled: false  // Disable by default, enable only if necessary
+        enabled: true  // Disable by default, enable only if necessary
       }
     ]
     metrics: [
@@ -124,16 +125,27 @@ resource storageDataPlaneLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-
 }
 
 // Application Insights with minimal settings for cost-efficiency
-resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: '${functionAppName}-appinsights'
+resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: appInsightsName
   location: location
   kind: 'web'
   properties: {
     Application_Type: 'web'
-    // Include more properties here as needed
     RetentionInDays: 30  // 30 day retention for cost-efficiency
   }
 }
+
+resource ProactiveDetectionConfigs 'Microsoft.Insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
+  parent: appInsights
+  name: 'longdependencyduration'
+  location: location
+  properties: {
+    SendEmailsToSubscriptionOwners: false
+    CustomEmails: []
+    Enabled: false
+  }
+}
+
 
 resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-05-15' = {
   name: cosmosDbAccountName
