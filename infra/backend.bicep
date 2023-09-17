@@ -145,7 +145,7 @@ resource ProactiveDetectionConfigs 'Microsoft.Insights/components/ProactiveDetec
     Enabled: false
   }
 }
-
+ 
 
 resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-05-15' = {
   name: cosmosDbAccountName
