@@ -43,6 +43,7 @@ jobs:
           parameters: >
             environmentType=${{ inputs.environmentType }}
             repositoryToken=${{ secrets.REPOSITORY_TOKEN }}
+            tenantId=${{ secrets.AZURE_TENANT_ID }}
           deploymentMode: Validate
 
       - name: Run what-if
