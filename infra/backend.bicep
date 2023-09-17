@@ -66,6 +66,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: keyVaultName
   location: location
   properties: {
+    accessPolicies: []
     sku: {
       family: 'A'
       name: 'standard'
