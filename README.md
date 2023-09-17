@@ -53,13 +53,10 @@ Data is organized based on Azure namespaces, resource types, and API versions, m
 - `backend.bicep`: Sets up an Azure Function which runs the `fetch-and-store.ps1` script on initial deployment, and again every 24 hours. It also sets up an Azure Cosmos DB with default automatic indexing, configures a 24 hour TTL, and `resourceType` as the partition key.
 
 ## Parameters and Secrets
-
-- Sensative or secret values that pertain to CI/CD are stored in Github Actions Secrets
-
-- Sensative or secret values that pertain to infrastructure are stored in Azure Key vault
-
-- Non-sensative parameter values that pertain to infrastructure are stored in `main.bicep`
+- Parameters that pertain to infrastructure are stored in `main.bicep`
+- Secrets that pertain to CI/CD are stored in Github Actions Secrets
+- Secrets that pertain to infrastructure are stored in Azure Key vault
 
 ## Security
 
-After deployment is complete, a runner exectures the `set-permission.ps1` script. This script assigns scoped permissions to the system assigned managed identity of the Azure Function.
+After deployment is complete, a runner executes the `set-permission.ps1` script. This script assigns scoped permissions to the system assigned managed identity of the Azure Function.

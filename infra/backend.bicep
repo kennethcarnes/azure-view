@@ -8,7 +8,7 @@ param tenantId string
 param cosmosDbAccountName string
 param cosmosDbName string
 param cosmosDbContainerName string
-param logAnalyticsWorkspaceId string
+param logAnalyticsWorkspaceName string
 
 // Outputs
 output cosmosDbAccountNameOutput string = cosmosDbAccountName
@@ -62,7 +62,7 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
   }
 }
 
-resource keyVault 'Microsoft.KeyVault/vaults@2022-02-01-preview' = {
+resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: keyVaultName
   location: location
   properties: {
@@ -88,11 +88,25 @@ resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2021-09-01'
   parent: storageAccount
 }
 
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
+  name: logAnalyticsWorkspaceName
+  location: location
+  properties: {
+    sku: {
+      name: 'Free'
+    }
+    retentionInDays: 30  // 30 day retention for cost-efficiency
+    workspaceCapping: {
+      dailyQuotaGb: json('0.025') // Capped for cost-efficiency
+    }
+  }
+}
+
 resource storageDataPlaneLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: '${storageAccountName}-logs'
   scope: blobService
   properties: {
-    workspaceId: logAnalyticsWorkspaceId
+    workspaceId: logAnalyticsWorkspace.id
     logs: [
       {
         category: 'StorageWrite'
@@ -116,7 +130,7 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   properties: {
     Application_Type: 'web'
     // Include more properties here as needed
-    RetentionInDays: 1  // 1 day retention for cost-efficiency
+    RetentionInDays: 30  // 30 day retention for cost-efficiency
   }
 }
 
