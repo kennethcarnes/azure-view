@@ -95,7 +95,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10
   location: location
   properties: {
     sku: {
-      name: 'Free'
+      name: 'Standard'
     }
     retentionInDays: 30  // 30 day retention for cost-efficiency
     workspaceCapping: {
