@@ -140,9 +140,9 @@ resource ProactiveDetectionConfigs 'Microsoft.Insights/components/ProactiveDetec
   name: 'longdependencyduration'
   location: location
   properties: {
-    SendEmailsToSubscriptionOwners: false
+    SendEmailsToSubscriptionOwners: false // Disable default email notifications for cost-efficiency
     CustomEmails: []
-    Enabled: false
+    Enabled: false // Disable default alert for cost-efficiency
   }
 }
  
