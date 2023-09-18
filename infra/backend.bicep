@@ -93,12 +93,13 @@ resource appConfig 'Microsoft.AppConfiguration/configurationStores@2023-03-01' =
   }
 }
 
+// Define a Log Analytics Workspace as central store diagnostics and metrics data
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   name: logAnalyticsWorkspaceName
   location: location
   properties: {
     sku: {
-      name: 'Standard'
+      name: 'PerGB2018'
     }
     retentionInDays: 30 // 30 day retention for cost-efficiency
     workspaceCapping: {
@@ -107,6 +108,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10
   }
 }
 
+// Define diagnostic settings to configure the kind of data that Azure Storage should send to the Log Analytics Workspace
 resource storageDataPlaneLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: '${storageAccountName}-logs'
   scope: blobService
@@ -115,7 +117,7 @@ resource storageDataPlaneLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-
     logs: [
       {
         category: 'StorageWrite'
-        enabled: true // Disable by default, enable only if necessary
+        enabled: false // Disable by default, enable only if necessary
       }
     ]
     metrics: [
@@ -127,25 +129,26 @@ resource storageDataPlaneLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-
   }
 }
 
-// Application Insights with minimal settings for cost-efficiency
+// Define an Application Insights instance for application-level monitoring and analytics
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: appInsightsName
   location: location
   kind: 'web'
   properties: {
     Application_Type: 'web'
+    Flow_Type: 'Bluefield'
+    Request_Source: 'rest'
+    WorkspaceResourceId: logAnalyticsWorkspace.id
     RetentionInDays: 30 // 30 day retention for cost-efficiency
   }
 }
 
-resource ProactiveDetectionConfigs 'Microsoft.Insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
+// Disabling Failure Anomalies detection in Application Insights
+resource ProactiveDetectionConfig 'Microsoft.Insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
   parent: appInsights
-  name: 'longdependencyduration'
-  location: location
+  name: 'Failure Anomalies'
   properties: {
-    SendEmailsToSubscriptionOwners: false // Disable default email notifications for cost-efficiency
-    CustomEmails: []
-    Enabled: false // Disable default alert for cost-efficiency
+    Enabled: false  // Disable the rule
   }
 }
 
