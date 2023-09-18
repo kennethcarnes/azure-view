@@ -29,6 +29,7 @@ var selectedBackendParams = environmentType == 'Test' ? {
   storageAccountName: 'stazureviewtest001'
   appServicePlanName: 'asp-azure-view-test-001'
   logAnalyticsWorkspaceName: 'law-azure-view-test-001'
+  keyvaultName: 'kv-azure-view-test-001'
   appConfigName: 'appcs-azure-view-test-001'
   appInsightsName: 'appi-azure-view-test-001'
   cosmosDbAccountName: 'costab-azure-view-test-001'
@@ -39,6 +40,7 @@ var selectedBackendParams = environmentType == 'Test' ? {
   storageAccountName: 'stazureviewprod001'
   appServicePlanName: 'asp-azure-view-prod-001'
   logAnalyticsWorkspaceName: 'law-azure-view-prod-001'
+  keyvaultName: 'kv-azure-view-prod-001'
   appConfigName: 'appcs-azure-view-prod-001'
   appInsightsName: 'appi-azure-view-prod-001'
   cosmosDbAccountName: 'costab-azure-view-prod-001'
@@ -70,8 +72,8 @@ module backend './backend.bicep' = {
     storageAccountName: selectedBackendParams.storageAccountName
     appServicePlanName: selectedBackendParams.appServicePlanName
     appConfigName: selectedBackendParams.appConfigName
-    keyVaultName: selectedBackendParams.functionAppName
-    logAnalyticsWorkspaceName: selectedBackendParams.functionAppName
+    keyVaultName: selectedBackendParams.keyVaultName
+    logAnalyticsWorkspaceName: selectedBackendParams.logAnalyticsWorkspaceName
     appInsightsName: selectedBackendParams.appInsightsName
     cosmosDbAccountName: selectedBackendParams.cosmosDbAccountName
     cosmosDbName: selectedBackendParams.cosmosDbName

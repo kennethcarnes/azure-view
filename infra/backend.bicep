@@ -146,7 +146,7 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
 // Disabling Failure Anomalies detection in Application Insights
 resource ProactiveDetectionConfig 'Microsoft.Insights/components/ProactiveDetectionConfigs@2018-05-01-preview' = {
   parent: appInsights
-  name: 'Failure Anomalies'
+  name: 'Failure Anomalies - ${appInsightsName}'
   properties: {
     Enabled: false  // Disable the rule
   }
