@@ -10,6 +10,9 @@ param appLocation string = '/'
 param apiLocation string = 'api'
 param appArtifactLocation string = ''
 
+// Outputs
+output swaName string = swa.name
+
 resource swa 'Microsoft.Web/staticSites@2022-03-01' = {
   name: swaName
   location: location

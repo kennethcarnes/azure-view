@@ -70,8 +70,6 @@ jobs:
       cosmosDbDatabaseName: ${{ steps.deploy.outputs.cosmosDbDatabaseName }}
       cosmosDbContainerName: ${{ steps.deploy.outputs.cosmosDbContainerName }}
       cosmosDbPartitionKey: ${{ steps.deploy.outputs.cosmosDbPartitionKey }}
-      cosmosDbUser: ${{ steps.deploy.outputs.cosmosDbUser }}
-      cosmosDbPassword: ${{ steps.deploy.outputs.cosmosDbPassword }}
 
     steps:
 
@@ -98,6 +96,10 @@ jobs:
             environmentType=${{ inputs.environmentType }}
             repositoryToken=${{ secrets.REPOSITORY_TOKEN }}
             tenantId=${{ secrets.AZURE_TENANT_ID }}
+
+      - name: Echo ARM Outputs
+        run: |
+          echo "ARM Outputs: ${{ toJson(steps.deploy.outputs) }}"
 
       - name: 'Deploy PowerShell to Azure Function App'
         uses: Azure/functions-action@v1

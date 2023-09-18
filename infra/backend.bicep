@@ -6,16 +6,18 @@ param keyVaultName string
 param appConfigName string
 param tenantId string
 param cosmosDbAccountName string
-param cosmosDbName string
+param cosmosDbDatabaseName string
 param cosmosDbContainerName string
+param cosmosDbContainerPartitionKey string
 param logAnalyticsWorkspaceName string
 param appInsightsName string
 
 // Outputs
-output functionAppNameOutput string = functionAppName
-output cosmosDbAccountNameOutput string = cosmosDbAccountName
-output cosmosDbNameOutput string = cosmosDbName
-output cosmosDbContainerNameOutput string = cosmosDbContainerName
+output functionAppName string = functionApp.name
+output cosmosDbAccountName string = cosmosDbAccount.name
+output cosmosDbDatabaseName string = cosmosDbDatabase.name
+output cosmosDbContainerName string = cosmosDbContainer.name
+output cosmosDbContainerPartitionKey string = cosmosDbContainerPartitionKey
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   name: storageAccountName
@@ -161,24 +163,24 @@ resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-05-15' = {
   }
 }
 
-resource cosmosDb 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2022-05-15' = {
+resource cosmosDbDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2022-05-15' = {
   parent: cosmosDbAccount
-  name: cosmosDbName
+  name: cosmosDbDatabaseName
   properties: {
     resource: {
-      id: cosmosDbName
+      id: cosmosDbDatabaseName
     }
   }
 }
 
 resource cosmosDbContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2022-05-15' = {
   name: cosmosDbContainerName
-  parent: cosmosDb
+  parent: cosmosDbDatabase
   properties: {
     resource: {
       id: cosmosDbContainerName
       partitionKey: {
-        paths: [ '/resourceType' ]
+        paths: [ '/${cosmosDbContainerPartitionKey}' ]
       }
     }
   }

@@ -33,8 +33,9 @@ var selectedBackendParams = environmentType == 'Test' ? {
   appConfigName: 'appcs-azure-view-test-001'
   appInsightsName: 'appi-azure-view-test-001'
   cosmosDbAccountName: 'costab-azure-view-test-001'
-  cosmosDbName: 'cosdb-azure-view-test-001'
+  cosmosDbDatabaseName: 'cosdb-azure-view-test-001'
   cosmosDbContainerName: 'coscont-azure-view-test-001'
+  cosmosDbContainerPartitionKey: '/resourceType'
 } : {
   functionAppName: 'func-azure-view-prod-001'
   storageAccountName: 'stazureviewprod001'
@@ -44,8 +45,9 @@ var selectedBackendParams = environmentType == 'Test' ? {
   appConfigName: 'appcs-azure-view-prod-001'
   appInsightsName: 'appi-azure-view-prod-001'
   cosmosDbAccountName: 'costab-azure-view-prod-001'
-  cosmosDbName: 'cosdb-azure-view-prod-001'
+  cosmosDbDatabaseName: 'cosdb-azure-view-prod-001'
   cosmosDbContainerName: 'coscont-azure-view-prod-001'
+  cosmosDbContainerPartitionKey: '/resourceType'
 }
 
 // Deploy frontend module
@@ -68,6 +70,7 @@ module backend './backend.bicep' = {
   params: {
     location: location
     tenantId: tenantId
+    cosmosDbContainerPartitionKey: selectedBackendParams.cosmosDbContainerPartitionKey
     functionAppName: selectedBackendParams.functionAppName
     storageAccountName: selectedBackendParams.storageAccountName
     appServicePlanName: selectedBackendParams.appServicePlanName
@@ -76,7 +79,15 @@ module backend './backend.bicep' = {
     logAnalyticsWorkspaceName: selectedBackendParams.logAnalyticsWorkspaceName
     appInsightsName: selectedBackendParams.appInsightsName
     cosmosDbAccountName: selectedBackendParams.cosmosDbAccountName
-    cosmosDbName: selectedBackendParams.cosmosDbName
+    cosmosDbDatabaseName: selectedBackendParams.cosmosDbDatabaseName
     cosmosDbContainerName: selectedBackendParams.cosmosDbContainerName
   }
 }
+
+// Outputs
+output swaNameOutput string = frontend.outputs.swaName
+output functionAppNameOutput string = backend.outputs.functionAppName
+output cosmosDbAccountNameOutput string = backend.outputs.cosmosDbAccountName
+output cosmosDbDatabaseNameOutput string = backend.outputs.cosmosDbDatabaseName
+output cosmosDbContainerNameOutput string = backend.outputs.cosmosDbContainerName
+output cosmosDbContainerPartitionKeyOutput string = backend.outputs.cosmosDbContainerPartitionKey
