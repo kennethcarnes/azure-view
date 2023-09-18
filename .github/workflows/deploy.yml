@@ -103,7 +103,7 @@ jobs:
 
       - name: Debug
         run: |
-          echo "Function App Name: ${{ steps.deploy.outputs.functionAppNameOutput }}
+          echo "Function App Name: ${{ steps.deploy.outputs.functionAppNameOutput }}"
         
       - name: 'Deploy PowerShell to Azure Function App'
         uses: Azure/functions-action@v1
