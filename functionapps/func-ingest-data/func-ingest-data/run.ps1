@@ -1,3 +1,29 @@
+using namespace System.Net
+
+# Input bindings are passed in via param block.
+param($Request, $TriggerMetadata)
+
+# Write to the Azure Functions log stream.
+Write-Host "PowerShell HTTP trigger function processed a request."
+
+# Interact with query parameters or the body of the request.
+$name = $Request.Query.Name
+if (-not $name) {
+    $name = $Request.Body.Name
+}
+
+$body = "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
+
+if ($name) {
+    $body = "Hello, $name. This HTTP triggered function executed successfully."
+}
+
+# Associate values to output bindings by calling 'Push-OutputBinding'.
+Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
+    StatusCode = [HttpStatusCode]::OK
+    Body = $body
+})
+
 # Function to log messages
 # Control the verbosity of logs by updating the DEBUG environment variable in the Function App settings
 function Write-Log([string]$message, [string]$level = 'info') {
@@ -14,7 +40,7 @@ Import-Module Az -ErrorAction SilentlyContinue
 # Function to get Azure Management Token
 function Get-AzureManagementToken {
     param ([string]$resourceUrl)
-    $accessToken = Get-AzAccessToken -ResourceUrl $resourceUrl
+    $accessToken = (Get-AzAccessToken -ResourceUrl $resourceUrl).Token
     return $accessToken
 }
 

@@ -65,6 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       swaName: ${{ steps.deploy.outputs.swaName }}
+      functionAppName: ${{ steps.deploy.outputs.functionAppName }}
       cosmosDbAccountName: ${{ steps.deploy.outputs.cosmosDbAccountName }}
       cosmosDbDatabaseName: ${{ steps.deploy.outputs.cosmosDbDatabaseName }}
       cosmosDbContainerName: ${{ steps.deploy.outputs.cosmosDbContainerName }}
@@ -97,6 +98,13 @@ jobs:
             environmentType=${{ inputs.environmentType }}
             repositoryToken=${{ secrets.REPOSITORY_TOKEN }}
             tenantId=${{ secrets.AZURE_TENANT_ID }}
+
+      - name: 'Deploy PowerShell to Azure Function App'
+        uses: Azure/functions-action@v1
+        id: func-ingest-data
+        with:
+          app-name: ${{ steps.deploy.outputs.functionAppName }}
+          package: .\functionapps\func-ingest-data
 
       - name: Set Azure Function Permissions for Cosmos DB
         shell: pwsh

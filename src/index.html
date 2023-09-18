@@ -26,37 +26,6 @@
 <div id="sunburstPlot"></div>
 
 <script>
-  // Mock data resembling Azure REST API structure
-  const mockData = {
-    ids: [
-      "Microsoft.Compute",
-      "Microsoft.Compute/virtualMachines",
-      "Microsoft.Compute/virtualMachines/2021-07-01",
-      "Microsoft.Compute/virtualMachines/2020-12-01",
-      "Microsoft.Compute/disks",
-      "Microsoft.Compute/disks/2021-07-01",
-      "Microsoft.Compute/disks/2020-12-01"
-    ],
-    labels: [
-      "Microsoft.Compute",
-      "Virtual Machines",
-      "2021-07-01",
-      "2020-12-01",
-      "Disks",
-      "2021-07-01",
-      "2020-12-01"
-    ],
-    parents: [
-      "",
-      "Microsoft.Compute",
-      "Microsoft.Compute/virtualMachines",
-      "Microsoft.Compute/virtualMachines",
-      "Microsoft.Compute",
-      "Microsoft.Compute/disks",
-      "Microsoft.Compute/disks"
-    ]
-  };
-
   // Create the sunburst chart
   Plotly.newPlot('sunburstPlot', [{
     type: "sunburst",
@@ -71,9 +40,6 @@
       color: "#ffffff"
     }
   });
-
-  // Uncomment the following code to fetch real data from Cosmos DB once you have the endpoint and keys
-  /*
   const apiUrl = 'https://your-cosmosdb-endpoint.com/data';
   fetch(apiUrl)
     .then(response => response.json())
@@ -88,7 +54,6 @@
       });
     })
     .catch(error => console.error('Error fetching data:', error));
-  */
 </script>
 
 </body>

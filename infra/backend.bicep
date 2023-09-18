@@ -12,14 +12,11 @@ param logAnalyticsWorkspaceName string
 param appInsightsName string
 
 // Outputs
+output functionAppNameOutput string = functionAppName
 output cosmosDbAccountNameOutput string = cosmosDbAccountName
 output cosmosDbNameOutput string = cosmosDbName
 output cosmosDbContainerNameOutput string = cosmosDbContainerName
 
-
-
-
-// https://learn.microsoft.com/en-us/azure/azure-functions/functions-infrastructure-as-code?tabs=bicep#deploy-on-consumption-plan
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   name: storageAccountName
   location: location
@@ -31,16 +28,17 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   }
 }
 
-resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' = {
-  name: appServicePlanName
-  location: location
-  sku: {
-    name: 'Y1'
-    tier: 'Dynamic'
-  }
-  properties: {}
+resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2022-05-01' = {
+  name: 'default'
+  parent: storageAccount
 }
 
+resource storageContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-05-01' = {
+  name: 'function-releases'
+  parent: blobService
+}
+
+// https://learn.microsoft.com/en-us/azure/azure-functions/functions-infrastructure-as-code?tabs=bicep#deploy-on-consumption-plan
 resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
   name: functionAppName
   location: location
@@ -50,11 +48,12 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
     serverFarmId: appServicePlan.id
     siteConfig: {
       appSettings: [
+        { name: 'WEBSITE_RUN_FROM_PACKAGE', value: 'https://your-storage-account-url/function-releases/your-package.zip' }
         { name: 'AzureWebJobsStorage', value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}' }
         { name: 'FUNCTIONS_EXTENSION_VERSION', value: '~4' }
         { name: 'FUNCTIONS_WORKER_RUNTIME', value: 'PowerShell' }
-        { name: 'APPINSIGHTS_INSTRUMENTATIONKEY', value: appInsights.properties.InstrumentationKey}
-        { name: 'DEBUG', value: 'true' }  // Control debug logs
+        { name: 'APPINSIGHTS_INSTRUMENTATIONKEY', value: appInsights.properties.InstrumentationKey }
+        { name: 'DEBUG', value: 'true' } // Control debug logs
       ]
       ftpsState: 'Disabled'
       minTlsVersion: '1.2'
@@ -76,18 +75,22 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   }
 }
 
+resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' = {
+  name: appServicePlanName
+  location: location
+  sku: {
+    name: 'Y1'
+    tier: 'Dynamic'
+  }
+  properties: {}
+}
+
 resource appConfig 'Microsoft.AppConfiguration/configurationStores@2023-03-01' = {
   name: appConfigName
   location: location
   sku: {
     name: 'free'
   }
-}
-
-// Azure Monitor resource logs for Azure Storage
-resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2021-09-01' existing = {
-  name: 'default'
-  parent: storageAccount
 }
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
@@ -97,7 +100,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10
     sku: {
       name: 'Standard'
     }
-    retentionInDays: 30  // 30 day retention for cost-efficiency
+    retentionInDays: 30 // 30 day retention for cost-efficiency
     workspaceCapping: {
       dailyQuotaGb: json('0.025') // Capped for cost-efficiency
     }
@@ -112,7 +115,7 @@ resource storageDataPlaneLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-
     logs: [
       {
         category: 'StorageWrite'
-        enabled: true  // Disable by default, enable only if necessary
+        enabled: true // Disable by default, enable only if necessary
       }
     ]
     metrics: [
@@ -131,7 +134,7 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   kind: 'web'
   properties: {
     Application_Type: 'web'
-    RetentionInDays: 30  // 30 day retention for cost-efficiency
+    RetentionInDays: 30 // 30 day retention for cost-efficiency
   }
 }
 
@@ -145,7 +148,6 @@ resource ProactiveDetectionConfigs 'Microsoft.Insights/components/ProactiveDetec
     Enabled: false // Disable default alert for cost-efficiency
   }
 }
- 
 
 resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-05-15' = {
   name: cosmosDbAccountName
@@ -157,12 +159,12 @@ resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-05-15' = {
     consistencyPolicy: {
       defaultConsistencyLevel: 'Eventual'
     }
-    locations: [{
-      locationName: location
-      failoverPriority: 0
-      isZoneRedundant: false
-    }]
-  } 
+    locations: [ {
+        locationName: location
+        failoverPriority: 0
+        isZoneRedundant: false
+      } ]
+  }
 }
 
 resource cosmosDb 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2022-05-15' = {
