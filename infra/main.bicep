@@ -35,7 +35,6 @@ var selectedBackendParams = environmentType == 'Test' ? {
   cosmosDbAccountName: 'costab-azure-view-test-001'
   cosmosDbDatabaseName: 'cosdb-azure-view-test-001'
   cosmosDbContainerName: 'coscont-azure-view-test-001'
-  cosmosDbContainerPartitionKey: '/resourceType'
 } : {
   functionAppName: 'func-azure-view-prod-001'
   storageAccountName: 'stazureviewprod001'
@@ -47,7 +46,6 @@ var selectedBackendParams = environmentType == 'Test' ? {
   cosmosDbAccountName: 'costab-azure-view-prod-001'
   cosmosDbDatabaseName: 'cosdb-azure-view-prod-001'
   cosmosDbContainerName: 'coscont-azure-view-prod-001'
-  cosmosDbContainerPartitionKey: '/resourceType'
 }
 
 // Deploy frontend module
@@ -70,7 +68,6 @@ module backend './backend.bicep' = {
   params: {
     location: location
     tenantId: tenantId
-    cosmosDbContainerPartitionKey: selectedBackendParams.cosmosDbContainerPartitionKey
     functionAppName: selectedBackendParams.functionAppName
     storageAccountName: selectedBackendParams.storageAccountName
     appServicePlanName: selectedBackendParams.appServicePlanName

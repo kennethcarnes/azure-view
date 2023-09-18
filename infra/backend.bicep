@@ -8,7 +8,6 @@ param tenantId string
 param cosmosDbAccountName string
 param cosmosDbDatabaseName string
 param cosmosDbContainerName string
-param cosmosDbContainerPartitionKey string
 param logAnalyticsWorkspaceName string
 param appInsightsName string
 
@@ -17,7 +16,7 @@ output functionAppName string = functionApp.name
 output cosmosDbAccountName string = cosmosDbAccount.name
 output cosmosDbDatabaseName string = cosmosDbDatabase.name
 output cosmosDbContainerName string = cosmosDbContainer.name
-output cosmosDbContainerPartitionKey string = cosmosDbContainerPartitionKey
+output cosmosDbContainerPartitionKey string = cosmosDbContainer.properties.resource.partitionKey.paths[0]
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   name: storageAccountName
@@ -180,7 +179,7 @@ resource cosmosDbContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/c
     resource: {
       id: cosmosDbContainerName
       partitionKey: {
-        paths: [ '/${cosmosDbContainerPartitionKey}' ]
+        paths: [ '/resourceType' ]
       }
     }
   }
