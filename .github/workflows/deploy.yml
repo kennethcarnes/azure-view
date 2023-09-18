@@ -101,11 +101,15 @@ jobs:
         run: |
           echo "ARM Outputs: ${{ toJson(steps.deploy.outputs) }}"
 
+      - name: Debug
+        run: |
+          echo "Function App Name: ${{ steps.deploy.outputs.functionAppNameOutput }}
+        
       - name: 'Deploy PowerShell to Azure Function App'
         uses: Azure/functions-action@v1
         id: func-ingest-data
         with:
-          app-name: ${{ steps.deploy.outputs.functionAppName }}
+          app-name: ${{ steps.deploy.outputs.functionAppNameOutputs }}
           package: .\functionapps\func-ingest-data
 
       - name: Set Azure Function Permissions for Cosmos DB
