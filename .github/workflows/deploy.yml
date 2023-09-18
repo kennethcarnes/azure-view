@@ -109,7 +109,7 @@ jobs:
         uses: Azure/functions-action@v1
         id: func-ingest-data
         with:
-          app-name: ${{ steps.deploy.outputs.functionAppNameOutputs }}
+          app-name: ${{ steps.deploy.outputs.functionAppNameOutput }}
           package: .\functionapps\func-ingest-data
 
       - name: Set Azure Function Permissions for Cosmos DB
