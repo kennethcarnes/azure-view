@@ -1,5 +1,5 @@
 param location string
-param functionAppName string
+param functionAppNames array
 param storageAccountName string
 param appServicePlanName string
 param keyVaultName string
@@ -12,12 +12,15 @@ param logAnalyticsWorkspaceName string
 param appInsightsName string
 
 // Outputs
-output functionAppName string = functionApp.name
+output functionAppNamesOutput array = functionAppNames
+output keyVaultName string = keyVault.name
+output appConfigName string = appConfig.name
 output cosmosDbAccountName string = cosmosDbAccount.name
 output cosmosDbDatabaseName string = cosmosDbDatabase.name
 output cosmosDbContainerName string = cosmosDbContainer.name
 output cosmosDbContainerPartitionKey string = cosmosDbContainer.properties.resource.partitionKey.paths[0]
 
+// Azure Storage Account for Azure Functions
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   name: storageAccountName
   location: location
@@ -29,18 +32,20 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   }
 }
 
+// Azure Blob Service for Function Releases
 resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2022-05-01' = {
   name: 'default'
   parent: storageAccount
 }
 
+// Storage Container for Azure Function Deployment Packages
 resource storageContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-05-01' = {
   name: 'function-releases'
   parent: blobService
 }
 
 // https://learn.microsoft.com/en-us/azure/azure-functions/functions-infrastructure-as-code?tabs=bicep#deploy-on-consumption-plan
-resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
+resource functionApps 'Microsoft.Web/sites@2021-03-01' = [for functionAppName in functionAppNames: {
   name: functionAppName
   location: location
   kind: 'functionapp'
@@ -54,13 +59,14 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
         { name: 'FUNCTIONS_WORKER_RUNTIME', value: 'PowerShell' }
         { name: 'APPINSIGHTS_INSTRUMENTATIONKEY', value: appInsights.properties.InstrumentationKey }
         { name: 'DEBUG', value: 'true' } // Control debug logs
+        { name: 'AppConfigStoreName', value: appConfigName }
       ]
       ftpsState: 'Disabled'
       minTlsVersion: '1.2'
     }
     httpsOnly: true
   }
-}
+}]
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: keyVaultName

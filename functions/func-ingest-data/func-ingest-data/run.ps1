@@ -20,9 +20,9 @@ if ($name) {
 
 # Associate values to output bindings by calling 'Push-OutputBinding'.
 Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
-    StatusCode = [HttpStatusCode]::OK
-    Body = $body
-})
+        StatusCode = [HttpStatusCode]::OK
+        Body       = $body
+    })
 
 # Function to log messages
 # Control the verbosity of logs by updating the DEBUG environment variable in the Function App settings
@@ -33,10 +33,6 @@ function Write-Log([string]$message, [string]$level = 'info') {
     Write-Host "{$level}: $message"
 }
 
-# Import or Install Azure PowerShell Module if not already imported
-Install-Module -Name Az -AllowClobber -Force -SkipPublisherCheck -Scope CurrentUser -ErrorAction SilentlyContinue
-Import-Module Az -ErrorAction SilentlyContinue
-
 # Function to get Azure Management Token
 function Get-AzureManagementToken {
     param ([string]$resourceUrl)
@@ -44,37 +40,25 @@ function Get-AzureManagementToken {
     return $accessToken
 }
 
-# Parameter block to accept inputs
-param(
-    [string]$keyVaultName,
-    [string]$appConfigName,
-    [string]$azureManagementApiUrl,
-    [string]$cosmosDbAccountName,
-    [string]$cosmosDbDatabase,
-    [string]$cosmosDbCollection,
-    [string]$documentId
-)
-
 # Main script execution starts here
 try {
     Write-Log "Starting script execution."
 
-    $azureManagementResourceUrl = 'https://management.azure.com/'
+    # Fetch CosmosDB details from Azure App Configuration
+    $appConfigStoreName = 'YourAppConfigStoreName'
+    $cosmosDbAccountName = (Get-AzAppConfigurationKey -Name $appConfigStoreName -Key 'CosmosDb:AccountName').Value
+    $cosmosDbDatabase = (Get-AzAppConfigurationKey -Name $appConfigStoreName -Key 'CosmosDb:Database').Value
+    $cosmosDbCollection = (Get-AzAppConfigurationKey -Name $appConfigStoreName -Key 'CosmosDb:Collection').Value
 
     # Fetch Azure Management Token
     Write-Log "Attempting to fetch Azure Management Token."
+    $azureManagementResourceUrl = 'https://management.azure.com/'
     $AzureMgmtToken = Get-AzureManagementToken -resourceUrl $azureManagementResourceUrl
     if ($null -eq $AzureMgmtToken) {
         Write-Log "Failed to fetch Azure Management Token." 'error'
         exit 1
     }
     Write-Log "Fetched Azure Management Token successfully."
-
-    # Store Azure Management Token in Key Vault
-    Write-Log "Attempting to store Azure Management Token in Key Vault."
-    $secureAzureMgmtToken = ConvertTo-SecureString $AzureMgmtToken -AsPlainText -Force
-    Set-AzKeyVaultSecret -VaultName $keyVaultName -Name 'AzureManagementToken' -SecretValue $secureAzureMgmtToken
-    Write-Log "Stored Azure Management Token in Key Vault successfully."
 
     # Fetch data from Azure API
     Write-Log "Attempting to fetch data from Azure API."
@@ -94,12 +78,6 @@ try {
         exit 1
     }
     Write-Log "Fetched Cosmos DB Token successfully."
-
-    # Store Cosmos DB Token in Key Vault
-    Write-Log "Attempting to store Cosmos DB Token in Key Vault."
-    $secureCosmosDbToken = ConvertTo-SecureString $CosmosDbToken -AsPlainText -Force
-    Set-AzKeyVaultSecret -VaultName $keyVaultName -Name 'CosmosDbToken' -SecretValue $secureCosmosDbToken
-    Write-Log "Stored Cosmos DB Token in Key Vault successfully."
 
     # Prepare and write data into Cosmos DB
     Write-Log "Preparing data for Cosmos DB."

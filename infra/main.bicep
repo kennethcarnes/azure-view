@@ -25,7 +25,7 @@ var selectedFrontendParams = environmentType == 'Test' ? {
 
 // Choose backend parameters based on environment type
 var selectedBackendParams = environmentType == 'Test' ? {
-  functionAppName: 'func-azure-view-test-001'
+  functionAppNames: ['func-ingest-data-test-001', 'func-retrieve-data-test-001']
   storageAccountName: 'stazureviewtest001'
   appServicePlanName: 'asp-azure-view-test-001'
   logAnalyticsWorkspaceName: 'law-azure-view-test-001'
@@ -36,7 +36,7 @@ var selectedBackendParams = environmentType == 'Test' ? {
   cosmosDbDatabaseName: 'cosdb-azure-view-test-001'
   cosmosDbContainerName: 'coscont-azure-view-test-001'
 } : {
-  functionAppName: 'func-azure-view-prod-001'
+  functionAppNames: ['func-ingest-data-prod-001', 'func-retrieve-data-prod-001']
   storageAccountName: 'stazureviewprod001'
   appServicePlanName: 'asp-azure-view-prod-001'
   logAnalyticsWorkspaceName: 'law-azure-view-prod-001'
@@ -68,7 +68,7 @@ module backend './backend.bicep' = {
   params: {
     location: location
     tenantId: tenantId
-    functionAppName: selectedBackendParams.functionAppName
+    functionAppNames: selectedBackendParams.functionAppNames
     storageAccountName: selectedBackendParams.storageAccountName
     appServicePlanName: selectedBackendParams.appServicePlanName
     appConfigName: selectedBackendParams.appConfigName
@@ -83,7 +83,9 @@ module backend './backend.bicep' = {
 
 // Outputs
 output swaNameOutput string = frontend.outputs.swaName
-output functionAppNameOutput string = backend.outputs.functionAppName
+output functionAppNamesOutput array = backend.outputs.functionAppNamesOutput
+output keyVaultNameOutput string = backend.outputs.keyVaultName
+output appConfigNameOutput string = backend.outputs.appConfigName
 output cosmosDbAccountNameOutput string = backend.outputs.cosmosDbAccountName
 output cosmosDbDatabaseNameOutput string = backend.outputs.cosmosDbDatabaseName
 output cosmosDbContainerNameOutput string = backend.outputs.cosmosDbContainerName

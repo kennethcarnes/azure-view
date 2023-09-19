@@ -9,7 +9,8 @@ param(
     [string] $cosmosDbAccountName,
     [string] $cosmosDbDatabaseName,
     [string] $cosmosDbContainerName,
-    [string] $cosmosDbPartitionKey
+    [string] $cosmosDbContainerPartitionKey,
+    [string] $cosmosDbPermissionType  # Add a parameter for permission type (e.g., "read" or "write")
 )
 
 # Fetch the Managed Identity Object ID for the Function App
@@ -22,12 +23,37 @@ Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -ObjectId $objectId -Permiss
 # Output the Object ID for verification
 Write-Host "Granted access to Object ID: $objectId"
 
-# Update CosmosDB role (this assumes that role with name 'MyReadWriteRole' doesn't exist; otherwise, you might want to update it)
+# Define Cosmos DB actions based on permission type
+$cosmosDbActions = @()
+
+if ($cosmosDbPermissionType -eq "read") {
+    # Define read actions
+    $cosmosDbActions = @( `
+        'Microsoft.DocumentDB/databaseAccounts/readMetadata',
+        'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read',
+        'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/' + $cosmosDbContainerName + '/read'
+    )
+}
+elseif ($cosmosDbPermissionType -eq "write") {
+    # Define write actions
+    $cosmosDbActions = @( `
+        'Microsoft.DocumentDB/databaseAccounts/readMetadata',
+        'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*',
+        'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/' + $cosmosDbContainerName + '/*'
+    )
+}
+
+# Create custom roles based on permission type
+if ($cosmosDbPermissionType -eq "read") {
+    $roleName = "CosmosDbReadRole"
+}
+elseif ($cosmosDbPermissionType -eq "write") {
+    $roleName = "CosmosDbWriteRole"
+}
+
+# Update CosmosDB role (this assumes that the role doesn't exist; otherwise, you might want to update it)
 New-AzCosmosDBSqlRoleDefinition -AccountName $cosmosDbAccountName `
-          -ResourceGroupName $resourceGroupName `
-          -Type CustomRole -RoleName MyReadWriteRole `
-          -DataAction @( `
-            'Microsoft.DocumentDB/databaseAccounts/readMetadata',
-            'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*', `
-            'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/' + $cosmosDbContainerName) `
-          -AssignableScope "/" 
+    -ResourceGroupName $resourceGroupName `
+    -Type CustomRole -RoleName $roleName
+    -DataAction $cosmosDbActions `
+    -AssignableScope "/" 
