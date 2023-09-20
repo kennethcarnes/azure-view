@@ -101,6 +101,8 @@ jobs:
         run: |
           Install-Module -Name Az.AppConfiguration -Force -Scope CurrentUser -SkipPublisherCheck
           $appConfigName = "${{ steps.deploy.outputs.appConfigName }}"
+          $endpoint = "https://" + $appConfigName + ".azconfig.io"
+          
           $keyValuePairs = @{
             "swaName" = "${{ steps.deploy.outputs.swaName }}"
             "keyVaultName" = "${{ steps.deploy.outputs.keyVaultName }}"
@@ -109,11 +111,12 @@ jobs:
             "cosmosDbContainerName" = "${{ steps.deploy.outputs.cosmosDbContainerName }}"
             "cosmosDbContainerPartitionKey" = "${{ steps.deploy.outputs.cosmosDbContainerPartitionKey }}"
           }
-      
+          
           foreach ($key in $keyValuePairs.Keys) {
             $value = $keyValuePairs[$key]
-            Az.AppConfiguration\Set-AzAppConfigurationKeyValue -Name $appConfigName -Key $key -Value $value
-          }
+            $label = $key  # Setting the label as the key; if you want it to be the value, set $label = $value
+            Set-AzAppConfigurationKeyValue -Endpoint $endpoint -Key $key -Value $value -Label $label
+          }      
           
   release:
     needs: deploy
@@ -181,7 +184,6 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run smoke tests
-        
         run: |
           Write-Host '${{needs.deploy.outputs.swaName}}'
           # $container = New-PesterContainer `
