@@ -1,5 +1,5 @@
 param location string
-param functionAppNames array
+param functionAppName string
 param storageAccountName string
 param appServicePlanName string
 param keyVaultName string
@@ -12,7 +12,7 @@ param logAnalyticsWorkspaceName string
 param appInsightsName string
 
 // Outputs
-output functionAppNames array = functionAppNames
+output functionAppName string = functionApp.name
 output keyVaultName string = keyVault.name
 output appConfigName string = appConfig.name
 output cosmosDbAccountName string = cosmosDbAccount.name
@@ -45,7 +45,7 @@ resource storageContainer 'Microsoft.Storage/storageAccounts/blobServices/contai
 }
 
 // https://learn.microsoft.com/en-us/azure/azure-functions/functions-infrastructure-as-code?tabs=bicep#deploy-on-consumption-plan
-resource functionApps 'Microsoft.Web/sites@2021-03-01' = [for functionAppName in functionAppNames: {
+resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
   name: functionAppName
   location: location
   kind: 'functionapp'
@@ -66,7 +66,7 @@ resource functionApps 'Microsoft.Web/sites@2021-03-01' = [for functionAppName in
     }
     httpsOnly: true
   }
-}]
+}
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: keyVaultName
