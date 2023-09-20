@@ -147,20 +147,37 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-  
-      - name: Set permissions for function app
+    
+      - name: Login Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+    
+      - name: Install Azure PowerShell
+        run: |
+          Install-Module -Name Az -AllowClobber -Scope CurrentUser -RequiredVersion 7.1.0 -Force -SkipPublisherCheck
+    
+      - name: Install Az.AppConfiguration Module
+        run: |
+          Install-Module -Name Az.AppConfiguration -Scope CurrentUser -Force -SkipPublisherCheck
+    
+      - name: Run PowerShell Set-Permissions.ps1
         uses: azure/powershell@v1
         with:
           azPSVersion: "latest"
-          inlineScript: ./scripts/Apply-Permissions.ps1 `
-              -ResourceGroupName ${{ inputs.resourceGroupName }} `
-              -FunctionAppName "${{ matrix.app.name }}" `
-              -KeyVaultName ${{ needs.deploy.outputs.keyVaultName }} `
-              -CosmosDbAccountName ${{ needs.deploy.outputs.cosmosDbAccountName }} `
-              -CosmosDbDatabaseName ${{ needs.deploy.outputs.cosmosDbDatabaseName }} `
-              -CosmosDbContainerName ${{ needs.deploy.outputs.cosmosDbContainerName }} `
-              -CosmosDbPartitionKey ${{ needs.deploy.outputs.cosmosDbContainerPartitionKey }} `
-              -CosmosDbPermissionType ${{ matrix.app.permissionType }}          
+          inlineScript: |
+            ./scripts/Set-Permissions.ps1 `
+            -ResourceGroupName ${{ inputs.resourceGroupName }} `
+            -FunctionAppName "${{ matrix.app.name }}" `
+            -KeyVaultName ${{ needs.deploy.outputs.keyVaultName }} `
+            -CosmosDbAccountName ${{ needs.deploy.outputs.cosmosDbAccountName }} `
+            -CosmosDbDatabaseName ${{ needs.deploy.outputs.cosmosDbDatabaseName }} `
+            -CosmosDbContainerName ${{ needs.deploy.outputs.cosmosDbContainerName }} `
+            -CosmosDbPartitionKey ${{ needs.deploy.outputs.cosmosDbContainerPartitionKey }} `
+            -CosmosDbPermissionType ${{ matrix.app.permissionType }}  `             
           
   smoke-test:
     runs-on: ubuntu-latest
@@ -180,4 +197,3 @@ jobs:
           # Invoke-Pester `
           #   -Container $container `
           #   -CI
-        
