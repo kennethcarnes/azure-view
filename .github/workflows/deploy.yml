@@ -101,8 +101,8 @@ jobs:
         run: |
           Install-Module -Name Az.AppConfiguration -Force -Scope CurrentUser -SkipPublisherCheck
           $appConfigName = "${{ steps.deploy.outputs.appConfigName }}"
-          $endpoint = "https://" + $appConfigName + ".azconfig.io"
-          
+          $endpoint = "https://$($appConfigName).azconfig.io"
+          Write-Host "Debug: Endpoint is $endpoint"  # Debug line to print the endpoint URL
           $keyValuePairs = @{
             "swaName" = "${{ steps.deploy.outputs.swaName }}"
             "keyVaultName" = "${{ steps.deploy.outputs.keyVaultName }}"
@@ -114,9 +114,10 @@ jobs:
           
           foreach ($key in $keyValuePairs.Keys) {
             $value = $keyValuePairs[$key]
-            $label = $key  # Setting the label as the key; if you want it to be the value, set $label = $value
-            Set-AzAppConfigurationKeyValue -Endpoint $endpoint -Key $key -Value $value -Label $label
-          }      
+            $label = $key  # You can choose either $key or $value depending on your needs
+            Set-AzAppConfigurationKeyValue -Endpoint $endpoint -Key $key -Label $label -Value $value
+          }
+            
           
   release:
     needs: deploy
