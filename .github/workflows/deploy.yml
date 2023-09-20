@@ -99,6 +99,7 @@ jobs:
       - name: Set Azure App Configuration
         shell: pwsh
         run: |
+          Install-Module -Name Az.AppConfiguration -Force -Scope CurrentUser -SkipPublisherCheck
           $appConfigName = "${{ steps.deploy.outputs.appConfigName }}"
           $keyValuePairs = @{
             "swaName" = "${{ steps.deploy.outputs.swaName }}"
@@ -108,12 +109,12 @@ jobs:
             "cosmosDbContainerName" = "${{ steps.deploy.outputs.cosmosDbContainerName }}"
             "cosmosDbContainerPartitionKey" = "${{ steps.deploy.outputs.cosmosDbContainerPartitionKey }}"
           }
-
+      
           foreach ($key in $keyValuePairs.Keys) {
             $value = $keyValuePairs[$key]
-            Set-AzAppConfigurationKeyValue -Name $appConfigName -Key $key -Value $value
+            Az.AppConfiguration\Set-AzAppConfigurationKeyValue -Name $appConfigName -Key $key -Value $value
           }
-
+          
   release:
     needs: deploy
     environment: ${{ inputs.environmentType }}
@@ -155,14 +156,6 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
-    
-      - name: Install Azure PowerShell
-        run: |
-          Install-Module -Name Az -AllowClobber -Scope CurrentUser -RequiredVersion 7.1.0 -Force -SkipPublisherCheck
-    
-      - name: Install Az.AppConfiguration Module
-        run: |
-          Install-Module -Name Az.AppConfiguration -Scope CurrentUser -Force -SkipPublisherCheck
     
       - name: Run PowerShell Set-Permissions.ps1
         uses: azure/powershell@v1
