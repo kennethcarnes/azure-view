@@ -150,7 +150,7 @@ jobs:
         uses: Azure/functions-action@v1
         with:
           app-name: ${{ matrix.app.name }}
-          package: ./functionapps/${{ matrix.app.name }}
+          package: ./functions/${{ matrix.app.name }}
 
   apply-permissions:
     needs: deploy
