@@ -12,7 +12,7 @@ param logAnalyticsWorkspaceName string
 param appInsightsName string
 
 // Outputs
-output functionAppNamesOutput array = functionAppNames
+output functionAppNames array = functionAppNames
 output keyVaultName string = keyVault.name
 output appConfigName string = appConfig.name
 output cosmosDbAccountName string = cosmosDbAccount.name

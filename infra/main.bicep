@@ -82,11 +82,11 @@ module backend './backend.bicep' = {
 }
 
 // Outputs
-output swaNameOutput string = frontend.outputs.swaName
-output functionAppNamesOutput array = backend.outputs.functionAppNamesOutput
-output keyVaultNameOutput string = backend.outputs.keyVaultName
-output appConfigNameOutput string = backend.outputs.appConfigName
-output cosmosDbAccountNameOutput string = backend.outputs.cosmosDbAccountName
-output cosmosDbDatabaseNameOutput string = backend.outputs.cosmosDbDatabaseName
-output cosmosDbContainerNameOutput string = backend.outputs.cosmosDbContainerName
-output cosmosDbContainerPartitionKeyOutput string = backend.outputs.cosmosDbContainerPartitionKey
+output swaName string = frontend.outputs.swaName
+output functionAppNames array = backend.outputs.functionAppNames
+output keyVaultName string = backend.outputs.keyVaultName
+output appConfigName string = backend.outputs.appConfigName
+output cosmosDbAccountName string = backend.outputs.cosmosDbAccountName
+output cosmosDbDatabaseName string = backend.outputs.cosmosDbDatabaseName
+output cosmosDbContainerName string = backend.outputs.cosmosDbContainerName
+output cosmosDbContainerPartitionKey string = backend.outputs.cosmosDbContainerPartitionKey
