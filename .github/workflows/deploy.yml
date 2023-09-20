@@ -86,7 +86,7 @@ jobs:
         id: deploy
         uses: azure/arm-deploy@v1
         with:
-          failOnStdErr: false
+          failOnStdErr: true
           deploymentName: ${{ github.run_number }}
           resourceGroupName: ${{ inputs.resourceGroupName }}
           scope: resourcegroup
