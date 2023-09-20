@@ -74,14 +74,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
+  
       - name: Sign in to Azure
         uses: azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
+  
       - name: Deploy Bicep file
         id: deploy
         uses: azure/arm-deploy@v1
@@ -95,14 +95,26 @@ jobs:
             environmentType=${{ inputs.environmentType }}
             repositoryToken=${{ secrets.REPOSITORY_TOKEN }}
             tenantId=${{ secrets.AZURE_TENANT_ID }}
-      
+  
+      - name: Debug Outputs
+        run: |
+          echo "Debugging output variables:"
+          echo "swaName: ${{ steps.deploy.outputs.swaName }}"
+          echo "functionAppNames: ${{ steps.deploy.outputs.functionAppNames }}"
+          echo "keyVaultName: ${{ steps.deploy.outputs.keyVaultName }}"
+          echo "appConfigName: ${{ steps.deploy.outputs.appConfigName }}"
+          echo "cosmosDbAccountName: ${{ steps.deploy.outputs.cosmosDbAccountName }}"
+          echo "cosmosDbDatabaseName: ${{ steps.deploy.outputs.cosmosDbDatabaseName }}"
+          echo "cosmosDbContainerName: ${{ steps.deploy.outputs.cosmosDbContainerName }}"
+          echo "cosmosDbContainerPartitionKey: ${{ steps.deploy.outputs.cosmosDbContainerPartitionKey }}"
+  
       - name: Set Azure App Configuration
         shell: pwsh
         run: |
           Install-Module -Name Az.AppConfiguration -Force -Scope CurrentUser -SkipPublisherCheck
           $appConfigName = "${{ steps.deploy.outputs.appConfigName }}"
           $endpoint = "https://$($appConfigName).azconfig.io"
-          Write-Host "Debug: Endpoint is $endpoint"  # Debug line to print the endpoint URL
+          Write-Host "Debug: Endpoint is $endpoint"
           $keyValuePairs = @{
             "swaName" = "${{ steps.deploy.outputs.swaName }}"
             "keyVaultName" = "${{ steps.deploy.outputs.keyVaultName }}"
@@ -116,8 +128,7 @@ jobs:
             $value = $keyValuePairs[$key]
             $label = $key  # You can choose either $key or $value depending on your needs
             Set-AzAppConfigurationKeyValue -Endpoint $endpoint -Key $key -Label $label -Value $value
-          }
-            
+          }          
           
   release:
     needs: deploy
