@@ -136,18 +136,15 @@ jobs:
     needs: deploy
     environment: ${{ inputs.environmentType }}
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        function: ['func-ingest-data', 'func-retrieve-data']
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
   
-      - name: Deploy function to single function app
+      - name: Deploy all functions to single function app
         uses: Azure/functions-action@v1
         with:
-          app-name: 
-          package: ./functions/${{ matrix.function }}
+          app-name: ${{ needs.deploy.outputs.functionAppName }}
+          package: ./functions/
   
   apply-permissions:
     needs: deploy
