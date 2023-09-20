@@ -81,6 +81,7 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
   
       - name: Deploy Bicep file
         id: deploy
@@ -109,26 +110,28 @@ jobs:
           echo "cosmosDbContainerPartitionKey: ${{ steps.deploy.outputs.cosmosDbContainerPartitionKey }}"
   
       - name: Set Azure App Configuration
-        shell: pwsh
-        run: |
-          Install-Module -Name Az.AppConfiguration -Force -Scope CurrentUser -SkipPublisherCheck
-          $appConfigName = "${{ steps.deploy.outputs.appConfigName }}"
-          $endpoint = "https://$($appConfigName).azconfig.io"
-          Write-Host "Debug: Endpoint is $endpoint"
-          $keyValuePairs = @{
-            "swaName" = "${{ steps.deploy.outputs.swaName }}"
-            "keyVaultName" = "${{ steps.deploy.outputs.keyVaultName }}"
-            "cosmosDbAccountName" = "${{ steps.deploy.outputs.cosmosDbAccountName }}"
-            "cosmosDbDatabaseName" = "${{ steps.deploy.outputs.cosmosDbDatabaseName }}"
-            "cosmosDbContainerName" = "${{ steps.deploy.outputs.cosmosDbContainerName }}"
-            "cosmosDbContainerPartitionKey" = "${{ steps.deploy.outputs.cosmosDbContainerPartitionKey }}"
-          }
-          
-          foreach ($key in $keyValuePairs.Keys) {
-            $value = $keyValuePairs[$key]
-            $label = $key  # You can choose either $key or $value depending on your needs
-            Set-AzAppConfigurationKeyValue -Endpoint $endpoint -Key $key -Label $label -Value $value
-          }          
+        uses: azure/powershell@v1
+        with:
+          azPSVersion: "latest"
+          inlineScript: |
+            Install-Module -Name Az.AppConfiguration -Force -Scope CurrentUser -SkipPublisherCheck
+            $appConfigName = "${{ steps.deploy.outputs.appConfigName }}"
+            $endpoint = "https://$($appConfigName).azconfig.io"
+            Write-Host "Debug: Endpoint is $endpoint"
+            $keyValuePairs = @{
+              "swaName" = "${{ steps.deploy.outputs.swaName }}"
+              "keyVaultName" = "${{ steps.deploy.outputs.keyVaultName }}"
+              "cosmosDbAccountName" = "${{ steps.deploy.outputs.cosmosDbAccountName }}"
+              "cosmosDbDatabaseName" = "${{ steps.deploy.outputs.cosmosDbDatabaseName }}"
+              "cosmosDbContainerName" = "${{ steps.deploy.outputs.cosmosDbContainerName }}"
+              "cosmosDbContainerPartitionKey" = "${{ steps.deploy.outputs.cosmosDbContainerPartitionKey }}"
+            }
+            
+            foreach ($key in $keyValuePairs.Keys) {
+              $value = $keyValuePairs[$key]
+              $label = $key  # You can choose either $key or $value depending on your needs
+              Set-AzAppConfigurationKeyValue -Endpoint $endpoint -Key $key -Label $label -Value $value
+            }          
           
   release:
     needs: deploy
