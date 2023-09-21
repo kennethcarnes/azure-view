@@ -1,23 +1,29 @@
-name: build
+name: build bicep files in parallel
 
 on:
   workflow_call:
 
 jobs:
-  bicep-build:
+  build-main:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
       - name: Build main.bicep
-        run: |
-          az bicep build --file ./infra/main.bicep
+        run: az bicep build --file ./infra/main.bicep
 
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
       - name: Build frontend.bicep
-        run: |
-          az bicep build --file ./infra/frontend.bicep
+        run: az bicep build --file ./infra/frontend.bicep
 
+  build-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
       - name: Build backend.bicep
-        run: |
-          az bicep build --file ./infra/backend.bicep
+        run: az bicep build --file ./infra/backend.bicep
