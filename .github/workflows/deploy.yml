@@ -131,10 +131,8 @@ jobs:
         with:
           app-name: ${{ needs.deploy.outputs.functionAppName }}
           package: ./functions/
-          
-  post-deployment-tasks:
-    needs: [ deploy, release ]
-    environment: ${{ inputs.environmentType }}
+
+  post-deploy-setup:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -148,51 +146,77 @@ jobs:
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         enable-AzPSSession: true
 
-    - name: List scripts directory
-      run: ls -la ./scripts
+    - name: List scripts directory and set execute permission
+      run: ls -la ./scripts && chmod +x ./scripts/*.ps1
 
-    - name: Set execute permission for PowerShell scripts
-      run: chmod +x ./scripts/*.ps1
-
-    - name: Set Azure App Configuration
+  post-deploy-config:
+    needs: [ deploy, release, post-deploy-setup ]
+    environment: ${{ inputs.environmentType }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Run PowerShell scripts in parallel
       uses: azure/powershell@v1
+      env:
+        appConfigName: ${{ needs.deploy.outputs.appConfigName }}
+        resourceGroupName: ${{ inputs.resourceGroupName }}
+        functionAppName: ${{ needs.deploy.outputs.functionAppName }}
+        swaName: ${{ needs.deploy.outputs.swaName }}
+        keyVaultName: ${{ needs.deploy.outputs.keyVaultName }}
+        cosmosDbAccountName: ${{ needs.deploy.outputs.cosmosDbAccountName }}
+        cosmosDbDatabaseName: ${{ needs.deploy.outputs.cosmosDbDatabaseName }}
+        cosmosDbContainerName: ${{ needs.deploy.outputs.cosmosDbContainerName }}
+        cosmosDbContainerPartitionKey: ${{ needs.deploy.outputs.cosmosDbContainerPartitionKey }}
+        swaUrl: ${{ needs.deploy.outputs.swaUrl }}
       with:
         azPSVersion: "latest"
-        inlineScript: ./scripts/SetAppConfiguration.ps1
-          -AppConfigName "${{ needs.deploy.outputs.appConfigName }}"
-          -SwaName "${{ needs.deploy.outputs.swaName }}"
-          -KeyVaultName "${{ needs.deploy.outputs.keyVaultName }}"
-          -CosmosDbAccountName "${{ needs.deploy.outputs.cosmosDbAccountName }}"
-          -CosmosDbDatabaseName "${{ needs.deploy.outputs.cosmosDbDatabaseName }}"
-          -CosmosDbContainerName "${{ needs.deploy.outputs.cosmosDbContainerName }}"
-          -CosmosDbContainerPartitionKey "${{ needs.deploy.outputs.cosmosDbContainerPartitionKey }}"
-    
-    - name: Update CORS in function app
-      uses: azure/powershell@v1
-      with:
-        azPSVersion: "latest"
-        inlineScript: ./scripts/update-cors.ps1
-          -ResourceGroupName "${{ inputs.resourceGroupName }}"
-          -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}"
-          -AllowedOrigins "${{ needs.deploy.outputs.swaUrl }}"
+        inlineScript: |
+          # Start scripts in background jobs
+          $job1 = Start-Job -ScriptBlock {
+            ./scripts/set-azappconfig.ps1 `
+              -AppConfigName $using:appConfigName `
+              -SwaName $using:swaName `
+              -KeyVaultName $using:keyVaultName `
+              -CosmosDbAccountName $using:cosmosDbAccountName `
+              -CosmosDbDatabaseName $using:cosmosDbDatabaseName `
+              -CosmosDbContainerName $using:cosmosDbContainerName `
+              -CosmosDbContainerPartitionKey $using:cosmosDbContainerPartitionKey
+          }
 
-    - name: Replace placeholders in HTML
-      uses: azure/powershell@v1
-      with:
-        azPSVersion: "latest"
-        inlineScript: ./scripts/replace-placeholders.ps1
-          -HtmlFile "./src/index.html"
-          -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}"
+          $job2 = Start-Job -ScriptBlock {
+            ./scripts/update-cors.ps1 `
+              -ResourceGroupName $using:resourceGroupName `
+              -FunctionAppName $using:functionAppName `
+              -AllowedOrigins $using:swaUrl
+          }
 
-    - name: Set permissions
-      uses: azure/powershell@v1
-      with:
-        azPSVersion: "latest"
-        inlineScript: ./scripts/set-permissions.ps1
-          -ResourceGroupName "${{ inputs.resourceGroupName }}"
-          -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}"
-          -CosmosDbAccountName "${{ needs.deploy.outputs.cosmosDbAccountName }}"
+          $job3 = Start-Job -ScriptBlock {
+            ./scripts/replace-placeholders.ps1 `
+              -HtmlFile "./src/index.html" `
+              -FunctionAppName $using:functionAppName
+          }
 
+          $job4 = Start-Job -ScriptBlock {
+            ./scripts/set-permissions.ps1 `
+              -ResourceGroupName $using:resourceGroupName `
+              -FunctionAppName $using:functionAppName `
+              -CosmosDbAccountName $using:cosmosDbAccountName
+          }
+
+          # Wait for all jobs to finish
+          $jobs = @($job1, $job2, $job3, $job4)
+          $jobs | Wait-Job
+
+          # Display outputs
+          $jobs | ForEach-Object {
+            Receive-Job -Job $_
+            Remove-Job -Job $_
+          }  
+
+  push-changes:
+    needs: [ deploy, release, post-deploy-setup, post-deploy-config ]
+    environment: ${{ inputs.environmentType }}
+    runs-on: ubuntu-latest
+    steps:
     - name: Commit and push if changed
       run: |
         git config --global user.email "actions@github.com"
