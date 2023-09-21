@@ -168,18 +168,32 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
+
+      - name: List scripts directory
+        run: ls -la ./scripts
   
       - name: Run PowerShell Set-Permissions.ps1
         uses: azure/powershell@v1
         with:
           azPSVersion: "latest"
           inlineScript: |
+            $ErrorActionPreference = "Continue"  # or "Stop" to terminate on error
+            Write-Host "Starting Set-Permissions script"
             ./scripts/Set-Permissions.ps1 `
-            -ResourceGroupName ${{ inputs.resourceGroupName }} `
-            -FunctionAppName ${{ needs.deploy.outputs.functionAppName }} `
-            -CosmosDbAccountName ${{ needs.deploy.outputs.cosmosDbAccountName }} `
-            -CosmosDbDatabaseName ${{ needs.deploy.outputs.cosmosDbDatabaseName }} `
-            -CosmosDbContainerName ${{ needs.deploy.outputs.cosmosDbContainerName }} `
+              -ResourceGroupName rg-azure-view-test-001 `
+              -FunctionAppName funcapp-azure-view-test-001 `
+              -CosmosDbAccountName costab-azure-view-test-001 `
+              -CosmosDbDatabaseName cosdb-azure-view-test-001 `
+              -CosmosDbContainerName coscont-azure-view-test-001
+            
+            if ($?) {
+              Write-Host "Script ran successfully"
+            } else {
+              Write-Host "Script failed"
+              Write-Host "Errors:"
+              $Error | ForEach-Object { Write-Host $_.Exception.Message }
+              exit 1
+            }
           
   smoke-test:
     runs-on: ubuntu-latest

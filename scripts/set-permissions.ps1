@@ -12,6 +12,11 @@ try {
     $functionApp = Get-AzWebApp -ResourceGroupName $resourceGroupName -Name $functionAppName
     $objectId = $functionApp.Identity.PrincipalId
 
+    # Validate that the Object ID is not null
+    if ($null -eq $objectId) {
+        throw "Managed Identity Object ID is null."
+    }
+
     # Output the Object ID for verification
     Write-Host "Managed Identity Object ID: $objectId"
 
@@ -35,6 +40,9 @@ try {
 }
 catch {
     Write-Host "Caught an exception:"
-    Write-Host $_.Exception | Format-List -Force
+    Write-Host $_.Exception.Message
+    Write-Host "StackTrace:"
+    Write-Host $_.Exception.StackTrace
+    Write-Host "Script failed. Exiting with error code 1."
     exit 1
 }
