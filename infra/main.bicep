@@ -83,6 +83,7 @@ module backend './backend.bicep' = {
 
 // Outputs
 output swaName string = frontend.outputs.swaName
+output swaUrl string = frontend.outputs.swaUrl
 output functionAppName string = backend.outputs.functionAppName
 output keyVaultName string = backend.outputs.keyVaultName
 output appConfigName string = backend.outputs.appConfigName

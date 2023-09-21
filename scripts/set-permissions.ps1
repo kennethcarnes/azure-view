@@ -1,20 +1,31 @@
 # Input parameters
 param(
+    [Parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
     [string] $resourceGroupName,
+
+    [Parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
     [string] $functionAppName,
-    [string] $cosmosDbAccountName,
-    [string] $cosmosDbDatabaseName,
-    [string] $cosmosDbContainerName
+
+    [Parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
+    [string] $cosmosDbAccountName
 )
 
 try {
-    # Fetch the Managed Identity Object ID for the Function App
+    # Validate Function App exists
     $functionApp = Get-AzWebApp -ResourceGroupName $resourceGroupName -Name $functionAppName
+    if (-not $functionApp) {
+        throw "Function App '$functionAppName' does not exist in resource group '$resourceGroupName'."
+    }
+
+    # Fetch the Managed Identity Object ID for the Function App
     $objectId = $functionApp.Identity.PrincipalId
 
     # Validate that the Object ID is not null
     if ($null -eq $objectId) {
-        throw "Managed Identity Object ID is null."
+        throw "Managed Identity Object ID is null for Function App '$functionAppName'."
     }
 
     # Output the Object ID for verification
@@ -25,6 +36,12 @@ try {
         'Microsoft.DocumentDB/databaseAccounts/readMetadata',
         'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*'
     )
+
+    # Validate Cosmos DB Account exists
+    $cosmosDbAccount = Get-AzCosmosDBAccount -ResourceGroupName $resourceGroupName -Name $cosmosDbAccountName
+    if (-not $cosmosDbAccount) {
+        throw "Cosmos DB Account '$cosmosDbAccountName' does not exist in resource group '$resourceGroupName'."
+    }
 
     # Create or update the custom role
     $roleName = "CosmosDbReadWriteRole"
@@ -39,10 +56,8 @@ try {
     Write-Host "Created/Updated role $roleName with ReadWrite permissions"
 }
 catch {
-    Write-Host "Caught an exception:"
-    Write-Host $_.Exception.Message
-    Write-Host "StackTrace:"
-    Write-Host $_.Exception.StackTrace
-    Write-Host "Script failed. Exiting with error code 1."
+    Write-Error "Caught an exception: $($_.Exception.Message)"
+    Write-Error "StackTrace: $($_.Exception.StackTrace)"
+    Write-Error "Script failed. Exiting with error code 1."
     exit 1
 }

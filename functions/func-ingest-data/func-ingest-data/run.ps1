@@ -20,9 +20,12 @@ if ($name) {
 
 # Associate values to output bindings by calling 'Push-OutputBinding'.
 Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
-        StatusCode = [HttpStatusCode]::OK
-        Body       = $body
-    })
+    StatusCode = [HttpStatusCode]::OK
+    Body = $body
+    Headers = @{
+        "Content-Type" = "application/json"
+    }
+})
 
 # Function to log messages
 # Control the verbosity of logs by updating the DEBUG environment variable in the Function App settings
@@ -45,7 +48,7 @@ try {
     Write-Log "Starting script execution."
 
     # Fetch CosmosDB details from Azure App Configuration
-    $appConfigStoreName = 'YourAppConfigStoreName'
+    $appConfigStoreName = $env:AppConfigStoreName
     $cosmosDbAccountName = (Get-AzAppConfigurationKey -Name $appConfigStoreName -Key 'CosmosDb:AccountName').Value
     $cosmosDbDatabase = (Get-AzAppConfigurationKey -Name $appConfigStoreName -Key 'CosmosDb:Database').Value
     $cosmosDbCollection = (Get-AzAppConfigurationKey -Name $appConfigStoreName -Key 'CosmosDb:Collection').Value

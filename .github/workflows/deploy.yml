@@ -30,8 +30,8 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      - name: Run preflight validation
 
+      - name: Run preflight validation
         if: inputs.environmentType != 'Production'
         uses: azure/arm-deploy@v1
         with:
@@ -64,6 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       swaName: ${{ steps.deploy.outputs.swaName }}
+      swaUrl: ${{ steps.deploy.outputs.swaUrl }}
       functionAppName: ${{ steps.deploy.outputs.functionAppName }}
       keyVaultName: ${{ steps.deploy.outputs.keyVaultName }}
       appConfigName: ${{ steps.deploy.outputs.appConfigName }}
@@ -101,6 +102,7 @@ jobs:
       - name: Echo Outputs
         run: |
           echo "swaName: ${{ steps.deploy.outputs.swaName }}"
+          echo "swaUrl: ${{ steps.deploy.outputs.swaUrl }}"
           echo "functionAppName: ${{ steps.deploy.outputs.functionAppName }}"
           echo "keyVaultName: ${{ steps.deploy.outputs.keyVaultName }}"
           echo "appConfigName: ${{ steps.deploy.outputs.appConfigName }}"
@@ -152,48 +154,69 @@ jobs:
         with:
           app-name: ${{ needs.deploy.outputs.functionAppName }}
           package: ./functions/
-  
-  apply-permissions:
-    needs: deploy
+          
+  post-deployment-tasks:
+    needs: [ deploy, release ]
     environment: ${{ inputs.environmentType }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-  
-      - name: Login Azure
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: true
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: List scripts directory
-        run: ls -la ./scripts
+    - name: Login Azure
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        enable-AzPSSession: true
 
-      - name: Set execute permission for PowerShell scripts
-        run: chmod +x ./scripts/*.ps1
-  
-      - name: Run PowerShell Set-Permissions.ps1
-        uses: azure/powershell@v1
-        with:
-          azPSVersion: "latest"
-          inlineScript: |
-            $ErrorActionPreference = "Continue"  # or "Stop" to terminate on error
-            Write-Host "Starting Set-Permissions script"
-            ./scripts/set-permissions.ps1 `
-              -ResourceGroupName rg-azure-view-test-001 `
-              -FunctionAppName funcapp-azure-view-test-001 `
-              -CosmosDbAccountName costab-azure-view-test-001 `
-              -CosmosDbDatabaseName cosdb-azure-view-test-001 `
-              -CosmosDbContainerName coscont-azure-view-test-001
-            
-            if ($?) {
-              Write-Host "Script ran successfully"
-            } else {
-              Write-Host "Script failed"
-              Write-Host "Errors:"
-              $Error | ForEach-Object { Write-Host $_.Exception.Message }
-              exit 1
-            }
+    - name: List scripts directory
+      run: ls -la ./scripts
+
+    - name: Set execute permission for PowerShell scripts
+      run: chmod +x ./scripts/*.ps1
+
+    - name: Update CORS in function app
+      uses: azure/powershell@v1
+      with:
+        azPSVersion: "latest"
+        inlineScript: ./scripts/update-cors.ps1
+          -ResourceGroupName "${{ inputs.resourceGroupName }}"
+          -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}"
+          -AllowedOrigins "${{ needs.deploy.outputs.swaUrl }}"
+
+    - name: Replace placeholders in HTML
+      uses: azure/powershell@v1
+      with:
+        azPSVersion: "latest"
+        inlineScript: ./scripts/replace-placeholders.ps1
+          -HtmlFile "./index.html"
+          -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}"
+
+    - name: Set permissions
+      uses: azure/powershell@v1
+      with:
+        azPSVersion: "latest"
+        inlineScript: ./scripts/set-permissions.ps1
+          -ResourceGroupName "${{ inputs.resourceGroupName }}"
+          -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}"
+          -CosmosDbAccountName "${{ needs.deploy.outputs.cosmosDbAccountName }}"
+
+    - name: Commit and push if changed
+      run: |
+        git config --global user.email "actions@github.com"
+        git config --global user.name "GitHub Actions"
+        git add -A
+        git diff-index --quiet HEAD || git commit -m "Automatically replaced function API URL placeholders in HTML [skip ci]"
+        git push origin main
+    
+    - name: Update Azure Static Web App with latest code
+      uses: azure/powershell@v1
+      with:
+        azPSVersion: "latest"
+        inlineScript: |
+          Update-AzStaticWebApp `
+          -ResourceGroupName ${{ inputs.resourceGroupName }} `
+          -Name ${{ needs.deploy.outputs.swaName }} `
+          -AppLocation "./path-to-your-build-dir/"

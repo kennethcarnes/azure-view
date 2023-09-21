@@ -1,0 +1,49 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #ffffff;
+    background-color: #1a1a1a;
+    overflow-x: hidden;
+}
+
+.centered-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.centered {
+    text-align: center;
+}
+
+#sunburstPlot {
+    width: 80%;
+    margin: 20px auto;
+}
+
+.action-button {
+    display: inline-block;
+    background-color: #0063B1;
+    padding: 12px 24px;
+    border-radius: 4px;
+    margin: 5px;
+    text-decoration: none;
+    font-size: 1em;
+    transition: background-color 0.3s, transform 0.2s;
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+}
+
+.action-button:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.action-button:hover {
+    background-color: #004782;
+    transform: scale(1.05);
+}

@@ -4,59 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Azure REST API Visualization Dashboard</title>
+    <title>Azure Management API Visualizer</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <style>
-        /* Same styling as your portfolio */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #ffffff;
-            background-color: #1a1a1a;
-            overflow-x: hidden;
-        }
-
-        .centered-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .centered {
-            text-align: center;
-        }
-
-        #sunburstPlot {
-            width: 80%;
-            margin: 20px auto;
-        }
-
-        .action-button {
-            display: inline-block;
-            background-color: #0063B1;
-            padding: 10px 20px;
-            border-radius: 4px;
-            margin: 5px;
-            text-decoration: none;
-            transition: background-color 0.3s, transform 0.2s;
-            color: #ffffff;
-            cursor: pointer;
-        }
-
-        .action-button:hover {
-            background-color: #004782;
-            transform: scale(1.05);
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
     <div class="centered-container">
         <div class="centered">
-            <h1>Azure REST API Visualization Dashboard</h1>
+            <h1>Azure Management API Visualizer</h1>
             <div id="controlPanel">
                 <button id="fetchLatestData" class="action-button">Fetch Latest Data</button>
                 <button id="retrieveData" class="action-button">Retrieve Data</button>
@@ -66,9 +22,8 @@
     </div>
 
     <script>
-        /* Same JavaScript as before with appropriate endpoints */
-        const fetchApiUrl = 'https://your-fetch-function-endpoint.com';
-        const retrieveApiUrl = 'https://your-retrieve-function-endpoint.com';
+        const fetchApiUrl = 'func-ingest-data-ApiUrlPlaceholder';
+        const retrieveApiUrl = 'func-retrieve-data-ApiUrlPlaceholder';
         
         document.getElementById('fetchLatestData').addEventListener('click', () => {
             fetch(fetchApiUrl, { method: 'POST' })

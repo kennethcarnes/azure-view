@@ -12,6 +12,7 @@ param appArtifactLocation string = ''
 
 // Outputs
 output swaName string = swa.name
+output swaUrl string = swa.properties.defaultHostname
 
 resource swa 'Microsoft.Web/staticSites@2022-03-01' = {
   name: swaName
