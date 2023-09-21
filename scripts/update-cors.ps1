@@ -18,11 +18,17 @@ if (-not (Get-Module -Name Az.Websites -ListAvailable)) {
     exit 1
 }
 
+# Construct the hashtable for CORS settings
+$corsSettings = @{
+    CorAllowedOrigin = $allowedOrigins;
+    CorSupportCredentials = $false  # Assuming you want to support credentials, adjust as needed.
+}
+
 try {
-    # Setting CORS Allowed Origins
-    Set-AzWebAppCorsAllowedOrigins -ResourceGroupName $resourceGroupName -Name $functionAppName -AllowedOrigins $allowedOrigins
+    # Update CORS settings for the function app
+    Update-AzFunctionAppSetting -Name $functionAppName -ResourceGroupName $resourceGroupName -AppSetting $corsSettings
 }
 catch {
-    Write-Error "Failed to set CORS allowed origins for $functionAppName in $resourceGroupName. Error: $_"
+    Write-Error "Failed to update CORS settings for $functionAppName in $resourceGroupName. Error: $_"
     exit 1
 }
