@@ -110,29 +110,6 @@ jobs:
           echo "cosmosDbDatabaseName: ${{ steps.deploy.outputs.cosmosDbDatabaseName }}"
           echo "cosmosDbContainerName: ${{ steps.deploy.outputs.cosmosDbContainerName }}"
           echo "cosmosDbContainerPartitionKey: ${{ steps.deploy.outputs.cosmosDbContainerPartitionKey }}"
-  
-      - name: Set Azure App Configuration
-        uses: azure/powershell@v1
-        with:
-          azPSVersion: "latest"
-          inlineScript: |
-            Install-Module -Name Az.AppConfiguration -Force -Scope CurrentUser -SkipPublisherCheck
-            $appConfigName = "${{ steps.deploy.outputs.appConfigName }}"
-            $endpoint = "https://$($appConfigName).azconfig.io"
-            $keyValuePairs = @{
-              "swaName" = "${{ steps.deploy.outputs.swaName }}"
-              "keyVaultName" = "${{ steps.deploy.outputs.keyVaultName }}"
-              "cosmosDbAccountName" = "${{ steps.deploy.outputs.cosmosDbAccountName }}"
-              "cosmosDbDatabaseName" = "${{ steps.deploy.outputs.cosmosDbDatabaseName }}"
-              "cosmosDbContainerName" = "${{ steps.deploy.outputs.cosmosDbContainerName }}"
-              "cosmosDbContainerPartitionKey" = "${{ steps.deploy.outputs.cosmosDbContainerPartitionKey }}"
-            }
-            
-            foreach ($key in $keyValuePairs.Keys) {
-              $value = $keyValuePairs[$key]
-              $label = $key  # You can choose either $key or $value depending on your needs
-              Set-AzAppConfigurationKeyValue -Endpoint $endpoint -Key $key -Label $label -Value $value
-            }          
           
   release:
     needs: deploy
@@ -177,6 +154,19 @@ jobs:
     - name: Set execute permission for PowerShell scripts
       run: chmod +x ./scripts/*.ps1
 
+    - name: Set Azure App Configuration
+      uses: azure/powershell@v1
+      with:
+        azPSVersion: "latest"
+        inlineScript: ./scripts/SetAppConfiguration.ps1
+          -AppConfigName "${{ needs.deploy.outputs.appConfigName }}"
+          -SwaName "${{ needs.deploy.outputs.swaName }}"
+          -KeyVaultName "${{ needs.deploy.outputs.keyVaultName }}"
+          -CosmosDbAccountName "${{ needs.deploy.outputs.cosmosDbAccountName }}"
+          -CosmosDbDatabaseName "${{ needs.deploy.outputs.cosmosDbDatabaseName }}"
+          -CosmosDbContainerName "${{ needs.deploy.outputs.cosmosDbContainerName }}"
+          -CosmosDbContainerPartitionKey "${{ needs.deploy.outputs.cosmosDbContainerPartitionKey }}"
+    
     - name: Update CORS in function app
       uses: azure/powershell@v1
       with:
@@ -191,7 +181,7 @@ jobs:
       with:
         azPSVersion: "latest"
         inlineScript: ./scripts/replace-placeholders.ps1
-          -HtmlFile "./index.html"
+          -HtmlFile "./src/index.html"
           -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}"
 
     - name: Set permissions
@@ -219,4 +209,4 @@ jobs:
           Update-AzStaticWebApp `
           -ResourceGroupName ${{ inputs.resourceGroupName }} `
           -Name ${{ needs.deploy.outputs.swaName }} `
-          -AppLocation "./path-to-your-build-dir/"
+          -AppLocation "./src/"
