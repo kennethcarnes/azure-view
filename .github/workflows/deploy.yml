@@ -171,6 +171,9 @@ jobs:
 
       - name: List scripts directory
         run: ls -la ./scripts
+
+      - name: Set execute permission for PowerShell scripts
+        run: chmod +x ./scripts/*.ps1
   
       - name: Run PowerShell Set-Permissions.ps1
         uses: azure/powershell@v1
@@ -179,7 +182,7 @@ jobs:
           inlineScript: |
             $ErrorActionPreference = "Continue"  # or "Stop" to terminate on error
             Write-Host "Starting Set-Permissions script"
-            ./scripts/Set-Permissions.ps1 `
+            ./scripts/set-permissions.ps1 `
               -ResourceGroupName rg-azure-view-test-001 `
               -FunctionAppName funcapp-azure-view-test-001 `
               -CosmosDbAccountName costab-azure-view-test-001 `
