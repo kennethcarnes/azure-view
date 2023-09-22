@@ -158,8 +158,9 @@ jobs:
             ./scripts/update-cors.ps1 `
               -ResourceGroupName "${{ inputs.resourceGroupName }}" `
               -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}" `
-              -AllowedOrigins "${{ needs.deploy.outputs.swaUrl }}"
-          
+              -AllowedOrigins "${{ needs.deploy.outputs.swaUrl }}" `
+              -SubscriptionId "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+              
       - name: Replace Placeholders in HTML
         uses: azure/powershell@v1
         with:

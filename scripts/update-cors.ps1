@@ -9,7 +9,11 @@ param (
 
     [Parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]
-    [string[]] $allowedOrigins
+    [string[]] $allowedOrigins,
+
+    [Parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
+    [string] $subscriptionId
 )
 
 # Ensure Azure module is loaded
@@ -26,7 +30,7 @@ $corsSettings = @{
 
 try {
     # Update CORS settings for the function app
-    Update-AzFunctionAppSetting -Name $functionAppName -ResourceGroupName $resourceGroupName -AppSetting $corsSettings
+    Update-AzFunctionAppSetting -Name $functionAppName -ResourceGroupName $resourceGroupName -AppSetting $corsSettings -SubscriptionId $subscriptionId  # <-- Modified this line
 }
 catch {
     Write-Error "Failed to update CORS settings for $functionAppName in $resourceGroupName. Error: $_"
