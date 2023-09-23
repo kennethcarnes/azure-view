@@ -30,6 +30,14 @@ $corsSettings = @{
 
 try {
     # Update CORS settings for the function app
+    Write-Output "Checking existence of Function App: $functionAppName in Resource Group: $resourceGroupName"
+    $funcApp = Get-AzFunctionApp -Name $functionAppName -ResourceGroupName $resourceGroupName
+    if ($funcApp) {
+    Write-Output "Function App details: $($funcApp | ConvertTo-Json)"
+    } else {
+    Write-Error "Function App not found!"
+    }
+
     Update-AzFunctionAppSetting -Name $functionAppName -ResourceGroupName $resourceGroupName -AppSetting $corsSettings -SubscriptionId $subscriptionId  # <-- Modified this line
 }
 catch {
