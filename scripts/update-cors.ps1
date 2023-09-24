@@ -22,6 +22,9 @@ if (-not (Get-Module -Name Az.Websites -ListAvailable)) {
     exit 1
 }
 
+# Set the Azure Context to the provided SubscriptionId
+Set-AzContext -SubscriptionId $subscriptionId
+
 # Construct the hashtable for CORS settings
 $corsSettings = @{
     CorAllowedOrigin = $allowedOrigins;
@@ -33,12 +36,12 @@ try {
     Write-Output "Checking existence of Function App: $functionAppName in Resource Group: $resourceGroupName"
     $funcApp = Get-AzFunctionApp -Name $functionAppName -ResourceGroupName $resourceGroupName
     if ($funcApp) {
-    Write-Output "Function App details: $($funcApp | ConvertTo-Json)"
+        Write-Output "Function App details: $($funcApp | ConvertTo-Json)"
     } else {
-    Write-Error "Function App not found!"
+        Write-Error "Function App not found!"
     }
 
-    Update-AzFunctionAppSetting -Name $functionAppName -ResourceGroupName $resourceGroupName -AppSetting $corsSettings -SubscriptionId $subscriptionId  # <-- Modified this line
+    Update-AzFunctionAppSetting -Name $functionAppName -ResourceGroupName $resourceGroupName -AppSetting $corsSettings
 }
 catch {
     Write-Error "Failed to update CORS settings for $functionAppName in $resourceGroupName. Error: $_"

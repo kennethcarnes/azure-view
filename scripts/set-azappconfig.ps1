@@ -57,9 +57,18 @@ foreach ($key in $keyValuePairs.Keys) {
     $label = $key  # You can choose either $key or $value depending on your needs
     
     try {
-        Set-AzAppConfigurationKeyValue -Endpoint $endpoint -Key $key -Label $label -Value $value
+        # Check if the key exists
+        $existingKey = Get-AzAppConfigurationKeyValue -Endpoint $endpoint -Key $key -Label $label -ErrorAction SilentlyContinue
+
+        if ($existingKey) {
+            # If key exists, update it
+            Set-AzAppConfigurationKeyValue -Endpoint $endpoint -Key $key -Label $label -Value $value -Overwrite
+        } else {
+            # If key doesn't exist, create it
+            Set-AzAppConfigurationKeyValue -Endpoint $endpoint -Key $key -Label $label -Value $value
+        }
     } catch {
-        Write-Error "Error while setting key-value for ${key}: $_"
+        Write-Error "Error while setting key-value for ${key}: $($_.Exception.Message)"
         exit 1
     }
 }
