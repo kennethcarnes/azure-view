@@ -45,7 +45,8 @@ try {
     )
 
     # Check if the role already exists
-    $existingRole = Get-AzCosmosDBSqlRoleDefinition -AccountName $cosmosDbAccountName -ResourceGroupName $resourceGroupName -RoleName $customRoleName -ErrorAction SilentlyContinue
+    $allRoles = Get-AzCosmosDBSqlRoleDefinition -AccountName $cosmosDbAccountName -ResourceGroupName $resourceGroupName
+    $existingRole = $allRoles | Where-Object { $_.RoleName -eq $customRoleName }
 
     if ($null -eq $existingRole) {
         New-AzCosmosDBSqlRoleDefinition -AccountName $cosmosDbAccountName `
@@ -59,7 +60,7 @@ try {
     }
 
     # Validation for role creation
-    $createdRole = Get-AzCosmosDBSqlRoleDefinition -AccountName $cosmosDbAccountName -ResourceGroupName $resourceGroupName -RoleName $customRoleName
+    $createdRole = $allRoles | Where-Object { $_.RoleName -eq $customRoleName }
     if (-not $createdRole) {
         throw "Failed to retrieve the custom role '$customRoleName' in Cosmos DB account '$cosmosDbAccountName'"
     }
