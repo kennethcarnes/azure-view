@@ -111,7 +111,7 @@ jobs:
           echo "cosmosDbContainerName: ${{ steps.deploy.outputs.cosmosDbContainerName }}"
           echo "cosmosDbContainerPartitionKey: ${{ steps.deploy.outputs.cosmosDbContainerPartitionKey }}"
           
-  release-and-config:
+  release:
     needs: deploy
     environment: ${{ inputs.environmentType }}
     runs-on: ubuntu-latest
@@ -127,19 +127,28 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
 
-      - name: Get Azure Context
-        uses: azure/powershell@v1
-        with:
-          azPSVersion: "latest"
-          inlineScript: |
-            Get-AzContext 
-  
       - name: Release function code
         uses: Azure/functions-action@v1
         with:
           app-name: ${{ needs.deploy.outputs.functionAppName }}
           package: ./functions/
 
+  config:
+    needs: [deploy, release]
+    environment: ${{ inputs.environmentType }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Sign in to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+      
       - name: Set scripts permissions
         run: |
           chmod +x ./scripts/*.ps1
@@ -157,15 +166,6 @@ jobs:
               -CosmosDbDatabaseName "${{ needs.deploy.outputs.cosmosDbDatabaseName }}" `
               -CosmosDbContainerName "${{ needs.deploy.outputs.cosmosDbContainerName }}" `
               -CosmosDbContainerPartitionKey "${{ needs.deploy.outputs.cosmosDbContainerPartitionKey }}"
-              
-      - name: Replace Placeholders in HTML
-        uses: azure/powershell@v1
-        with:
-          azPSVersion: "latest"
-          inlineScript: |
-            ./scripts/replace-placeholders.ps1 `
-              -HtmlFile "./src/index.html" `
-              -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}"
           
       - name: Set Permissions
         uses: azure/powershell@v1
@@ -177,14 +177,14 @@ jobs:
               -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}" `
               -CosmosDbAccountName "${{ needs.deploy.outputs.cosmosDbAccountName }}"
 
-      - name: Azure CLI Debugging
-        run: |
-          echo "Checking Function App existence using Azure CLI"
-          az functionapp show --name ${{ needs.deploy.outputs.functionAppName }} --resource-group ${{ inputs.resourceGroupName }} || echo "Function App not found using Azure CLI"
-      
-      - name: Debug Subscription ID
-        run: |
-          echo "Subscription ID: ${SECRETS_AZURE_SUBSCRIPTION_ID:0:5}"
+      - name: Replace Placeholders in HTML
+        uses: azure/powershell@v1
+        with:
+          azPSVersion: "latest"
+          inlineScript: |
+            ./scripts/replace-placeholders.ps1 `
+              -HtmlFile "./src/index.html" `
+              -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}"
 
       - name: Update CORS
         uses: azure/powershell@v1
@@ -198,7 +198,7 @@ jobs:
               -SubscriptionId "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
   push:
-    needs: [ deploy, release-and-config ]
+    needs: [deploy, config]
     environment: ${{ inputs.environmentType }}
     runs-on: ubuntu-latest
     steps:
