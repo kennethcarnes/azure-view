@@ -153,16 +153,28 @@ jobs:
         run: |
           chmod +x ./scripts/*.ps1
 
+      - name: Display script content
+        run: |
+          cat ./scripts/Set-CosmosDBRoleDelegation.ps1
+
+      - name: Print variables
+        run: |
+          echo "ResourceGroupName: ${{ inputs.resourceGroupName }}"
+          echo "CosmosDbAccountName: ${{ needs.deploy.outputs.cosmosDbAccountName }}"
+          echo "AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}"
+
       - name: Set Cosmos DB Role Delegation
         uses: azure/powershell@v1
         with:
           azPSVersion: "latest"
           inlineScript: |
-            ./scripts/Set-CosmosDBRoleDelegation.ps1 `
+            $ErrorActionPreference = "Stop"
+            pwsh ./scripts/Set-CosmosDBRoleDelegation.ps1 `
               -ResourceGroupName "${{ inputs.resourceGroupName }}" `
               -CosmosDbAccountName "${{ needs.deploy.outputs.cosmosDbAccountName }}" `
               -ServicePrincipalClientId "${{ secrets.AZURE_CLIENT_ID }}" `
-              
+              -Debug
+
       - name: Set Function App Cosmos DB Permissions
         uses: azure/powershell@v1
         with:
