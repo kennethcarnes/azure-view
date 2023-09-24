@@ -31,17 +31,18 @@ try {
         AssignableScopes = @($cosmosDbResourceId)
     }
 
-    # Check if the role definition exists
-    $existingRole = Get-AzRoleDefinition -Name "Custom Role Assignment Delegate" -ErrorAction SilentlyContinue
+# Check and create the custom role if it does not exist
+$existingRole = Get-AzRoleDefinition -Name "Custom Role Assignment Delegate" -ErrorAction SilentlyContinue
 
-    if ($null -eq $existingRole) {
-        throw "Role 'Custom Role Assignment Delegate' does not exist."
-    }
+if ($null -eq $existingRole) {
+    Write-Host "Role 'Custom Role Assignment Delegate' does not exist. Creating it now."
+    New-AzRoleDefinition @customRoleProperties
+} else {
+    $existingRole.Actions = $customRoleProperties.Actions
+    $existingRole.AssignableScopes = $customRoleProperties.AssignableScopes
+    $existingRole | Set-AzRoleDefinition
+}
 
-    # Update the role definition
-$existingRole.Actions = $customRoleProperties.Actions
-$existingRole.AssignableScopes = $customRoleProperties.AssignableScopes
-$existingRole | Set-AzRoleDefinition
 
 # Get the ObjectId of the Service Principal using the passed ClientId
 $sp = Get-AzADServicePrincipal -ApplicationId $servicePrincipalClientId
@@ -63,7 +64,8 @@ $existingAssignment = Get-AzRoleAssignment -ObjectId $spObjectId -RoleDefinition
     }
     catch {
         Write-Error "Caught an exception: $($_.Exception.Message)"
+        Write-Error "Full Exception: $_"
         Write-Error "StackTrace: $($_.Exception.StackTrace)"
-        Write-Error "Script failed. Exiting with error code 1."
         exit 1
     }
+    
