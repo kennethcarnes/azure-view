@@ -1,6 +1,3 @@
-# Ensure necessary module is imported
-Import-Module Az
-
 param(
     [Parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]
