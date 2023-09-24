@@ -159,7 +159,7 @@ jobs:
           azPSVersion: "latest"
           inlineScript: |
             $spId = "${{ secrets.AZURE_CLIENT_ID }}"
-            $appConfigId = (Get-AzAppConfiguration -ResourceGroupName "${{ inputs.resourceGroupName }}" -Name "${{ needs.deploy.outputs.appConfigName }}").ResourceId
+            $appConfigId = (Get-AzAppConfigurationStore -ResourceGroupName "${{ inputs.resourceGroupName }}" -Name "${{ needs.deploy.outputs.appConfigName }}").ResourceId
 
             # Check if SP has the required permissions
             $currentAssignments = Get-AzRoleAssignment -ObjectId $spId -Scope $appConfigId -RoleDefinitionName "App Configuration Data Owner"
