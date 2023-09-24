@@ -162,7 +162,6 @@ jobs:
               -ResourceGroupName "${{ inputs.resourceGroupName }}" `
               -CosmosDbAccountName "${{ needs.deploy.outputs.cosmosDbAccountName }}" `
               -ServicePrincipalClientId "${{ secrets.AZURE_CLIENT_ID }}" `
-              -Debug $true
               
       - name: Set Function App Cosmos DB Permissions
         uses: azure/powershell@v1
