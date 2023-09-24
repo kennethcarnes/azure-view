@@ -153,6 +153,16 @@ jobs:
         run: |
           chmod +x ./scripts/*.ps1
 
+      - name: Set Function App Cosmos DB Permissions
+        uses: azure/powershell@v1
+        with:
+          azPSVersion: "latest"
+          inlineScript: |
+            ./scripts/Set-FunctionAppCosmosDBPermissions.ps1 `
+              -ResourceGroupName "${{ inputs.resourceGroupName }}" `
+              -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}" `
+              -CosmosDbAccountName "${{ needs.deploy.outputs.cosmosDbAccountName }}"
+
       - name: Assign permissions to SP for Azure App Configuration
         uses: azure/powershell@v1
         with:
@@ -181,16 +191,6 @@ jobs:
               -CosmosDbDatabaseName "${{ needs.deploy.outputs.cosmosDbDatabaseName }}" `
               -CosmosDbContainerName "${{ needs.deploy.outputs.cosmosDbContainerName }}" `
               -CosmosDbContainerPartitionKey "${{ needs.deploy.outputs.cosmosDbContainerPartitionKey }}"
-          
-      - name: Set Permissions
-        uses: azure/powershell@v1
-        with:
-          azPSVersion: "latest"
-          inlineScript: |
-            ./scripts/set-permissions.ps1 `
-              -ResourceGroupName "${{ inputs.resourceGroupName }}" `
-              -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}" `
-              -CosmosDbAccountName "${{ needs.deploy.outputs.cosmosDbAccountName }}"
 
       - name: Replace Placeholders in HTML
         uses: azure/powershell@v1
