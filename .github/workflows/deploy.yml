@@ -158,7 +158,7 @@ jobs:
         with:
           azPSVersion: "latest"
           inlineScript: |
-            ./scripts/Set-FunctionAppCosmosDBPermissions.ps1 `
+            ./scripts/Set-FunctionAppCosmosDBPermission.ps1 `
               -ResourceGroupName "${{ inputs.resourceGroupName }}" `
               -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}" `
               -CosmosDbAccountName "${{ needs.deploy.outputs.cosmosDbAccountName }}"

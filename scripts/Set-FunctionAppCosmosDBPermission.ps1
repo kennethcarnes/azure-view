@@ -38,8 +38,7 @@ try {
 
     # Assign "Document DB Data Contributor" role to the managed identity of the Function App
     $roleDefinitionName = "Document DB Data Contributor"
-    $roleDefinition = Get-AzRoleDefinition -Name $roleDefinitionName
-
+    
     # Check if the role assignment already exists
     $existingRoleAssignment = Get-AzRoleAssignment -ObjectId $objectId -RoleDefinitionName $roleDefinitionName -Scope $cosmosDbAccount.Id -ErrorAction SilentlyContinue
 
