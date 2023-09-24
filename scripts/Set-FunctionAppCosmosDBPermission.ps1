@@ -44,18 +44,24 @@ try {
         'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*'
     )
 
-    # Create or update the custom role in Cosmos DB
-    New-AzCosmosDBSqlRoleDefinition -AccountName $cosmosDbAccountName `
-        -ResourceGroupName $resourceGroupName `
-        -Type CustomRole -RoleName $customRoleName `
-        -DataAction $customRoleActions `
-        -AssignableScope "/" 
-    Write-Host "Created/Updated custom role '$customRoleName' in Cosmos DB account '$cosmosDbAccountName'"
+    # Check if the role already exists
+    $existingRole = Get-AzCosmosDBSqlRoleDefinition -AccountName $cosmosDbAccountName -ResourceGroupName $resourceGroupName -RoleName $customRoleName -ErrorAction SilentlyContinue
+
+    if ($null -eq $existingRole) {
+        New-AzCosmosDBSqlRoleDefinition -AccountName $cosmosDbAccountName `
+            -ResourceGroupName $resourceGroupName `
+            -Type CustomRole -RoleName $customRoleName `
+            -DataAction $customRoleActions `
+            -AssignableScope "/" 
+        Write-Host "Created custom role '$customRoleName' in Cosmos DB account '$cosmosDbAccountName'"
+    } else {
+        Write-Host "Custom role '$customRoleName' already exists in Cosmos DB account '$cosmosDbAccountName'. No action needed."
+    }
 
     # Validation for role creation
     $createdRole = Get-AzCosmosDBSqlRoleDefinition -AccountName $cosmosDbAccountName -ResourceGroupName $resourceGroupName -RoleName $customRoleName
     if (-not $createdRole) {
-        throw "Failed to create or retrieve the custom role '$customRoleName' in Cosmos DB account '$cosmosDbAccountName'"
+        throw "Failed to retrieve the custom role '$customRoleName' in Cosmos DB account '$cosmosDbAccountName'"
     }
 
     # Retry logic for assigning the custom role
