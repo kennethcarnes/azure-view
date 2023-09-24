@@ -31,19 +31,23 @@ $corsSettings = @{
     CorSupportCredentials = $false  # Assuming you want to support credentials, adjust as needed.
 }
 
+# Check Function App existence
+Write-Output "Checking existence of Function App: $functionAppName in Resource Group: $resourceGroupName"
+$funcApp = Get-AzFunctionApp -Name $functionAppName -ResourceGroupName $resourceGroupName
+
+if (-not $funcApp) {
+    Write-Error "Function App '$functionAppName' either does not exist in resource group '$resourceGroupName' or the script lacks permission to access it."
+    exit 1
+}
+
+Write-Output "Function App details: $($funcApp | ConvertTo-Json)"
+
 try {
     # Update CORS settings for the function app
-    Write-Output "Checking existence of Function App: $functionAppName in Resource Group: $resourceGroupName"
-    $funcApp = Get-AzFunctionApp -Name $functionAppName -ResourceGroupName $resourceGroupName
-    if ($funcApp) {
-        Write-Output "Function App details: $($funcApp | ConvertTo-Json)"
-    } else {
-        Write-Error "Function App not found!"
-    }
-
     Update-AzFunctionAppSetting -Name $functionAppName -ResourceGroupName $resourceGroupName -AppSetting $corsSettings
+    Write-Output "CORS settings updated successfully for $functionAppName in $resourceGroupName."
 }
 catch {
-    Write-Error "Failed to update CORS settings for $functionAppName in $resourceGroupName. Error: $_"
+    Write-Error "Failed to update CORS settings for $functionAppName in $resourceGroupName. Detailed Error: $_"
     exit 1
 }

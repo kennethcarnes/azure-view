@@ -152,7 +152,22 @@ jobs:
       - name: Set scripts permissions
         run: |
           chmod +x ./scripts/*.ps1
-      
+
+      - name: Assign permissions to SP for Azure App Configuration
+        uses: azure/powershell@v1
+        with:
+          azPSVersion: "latest"
+          inlineScript: |
+            $spId = "${{ secrets.AZURE_CLIENT_ID }}"
+            $appConfigId = (Get-AzAppConfiguration -ResourceGroupName "${{ inputs.resourceGroupName }}" -Name "${{ needs.deploy.outputs.appConfigName }}").ResourceId
+
+            # Check if SP has the required permissions
+            $currentAssignments = Get-AzRoleAssignment -ObjectId $spId -Scope $appConfigId -RoleDefinitionName "App Configuration Data Owner"
+            if (-not $currentAssignments) {
+              # Assign the "App Configuration Data Owner" role to the service principal for the Azure App Configuration instance
+              New-AzRoleAssignment -ObjectId $spId -Scope $appConfigId -RoleDefinitionName "App Configuration Data Owner"
+            }
+
       - name: Set Azure App Configuration
         uses: azure/powershell@v1
         with:
