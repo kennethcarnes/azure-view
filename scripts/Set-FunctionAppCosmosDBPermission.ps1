@@ -36,18 +36,32 @@ try {
         throw "Cosmos DB Account '$cosmosDbAccountName' does not exist in resource group '$resourceGroupName'."
     }
 
-    # Assign "Document DB Data Contributor" role to the managed identity of the Function App
-    $roleDefinitionName = "Document DB Data Contributor"
-    
+    # Define custom role for Cosmos DB
+    $customRoleName = "FunctionAppCosmosDBRole"
+    $customRoleActions = @( 
+        'Microsoft.DocumentDB/databaseAccounts/readMetadata',
+        'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*',
+        'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*'
+    )
+
+    # Create or update the custom role in Cosmos DB
+    New-AzCosmosDBSqlRoleDefinition -AccountName $cosmosDbAccountName `
+        -ResourceGroupName $resourceGroupName `
+        -Type CustomRole -RoleName $customRoleName `
+        -DataAction $customRoleActions `
+        -AssignableScope "/" 
+    Write-Host "Created/Updated custom role '$customRoleName' in Cosmos DB account '$cosmosDbAccountName'"
+
+    # Assign the custom role to the managed identity of the Function App
     # Check if the role assignment already exists
-    $existingRoleAssignment = Get-AzRoleAssignment -ObjectId $objectId -RoleDefinitionName $roleDefinitionName -Scope $cosmosDbAccount.Id -ErrorAction SilentlyContinue
+    $existingRoleAssignment = Get-AzRoleAssignment -ObjectId $objectId -RoleDefinitionName $customRoleName -Scope $cosmosDbAccount.Id -ErrorAction SilentlyContinue
 
     if ($null -eq $existingRoleAssignment) {
-        New-AzRoleAssignment -ObjectId $objectId -RoleDefinitionName $roleDefinitionName -Scope $cosmosDbAccount.Id
+        New-AzRoleAssignment -ObjectId $objectId -RoleDefinitionName $customRoleName -Scope $cosmosDbAccount.Id
         # Output for verification
-        Write-Host "Assigned '$roleDefinitionName' role to the managed identity of Function App '$functionAppName'"
+        Write-Host "Assigned custom role '$customRoleName' to the managed identity of Function App '$functionAppName'"
     } else {
-        Write-Host "The role '$roleDefinitionName' is already assigned to the managed identity of Function App '$functionAppName'. No action needed."
+        Write-Host "The custom role '$customRoleName' is already assigned to the managed identity of Function App '$functionAppName'. No action needed."
     }
 }
 catch {
