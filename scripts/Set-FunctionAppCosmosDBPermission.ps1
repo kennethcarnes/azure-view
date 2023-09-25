@@ -1,3 +1,5 @@
+# This script assigns the "DocumentDB Account Contributor" role to a Function App's Managed Identity for a Cosmos DB account.
+
 param(
     [Parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]

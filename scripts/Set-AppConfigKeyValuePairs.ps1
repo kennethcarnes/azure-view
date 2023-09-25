@@ -1,47 +1,65 @@
+# This script sets key-value pairs on an Azure App Configuration.
+
 param(
     [Parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
     [string]$appConfigName,
 
     [Parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
     [string]$swaName,
 
     [Parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
     [string]$keyVaultName,
 
     [Parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
     [string]$cosmosDbAccountName,
 
     [Parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
     [string]$cosmosDbDatabaseName,
 
     [Parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
     [string]$cosmosDbContainerName,
 
     [Parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
     [string]$cosmosDbContainerPartitionKey
 )
 
-# Function to Test parameters
+function ExitWithError {
+    param (
+        [string] $message
+    )
+    Write-Error $message
+    exit 1
+}
+
 function Test-Parameters {
-    $params = @($appConfigName, $swaName, $keyVaultName, $cosmosDbAccountName, 
-               $cosmosDbDatabaseName, $cosmosDbContainerName, $cosmosDbContainerPartitionKey)
-               
-    foreach ($param in $params) {
+    param (
+        [array] $parameters
+    )
+
+    foreach ($param in $parameters) {
         if (-not $param) {
-            Write-Error "One or more parameters are null or empty."
-            exit 1
+            ExitWithError "One or more parameters are null or empty."
         }
     }
 }
 
-# Call the validation function
-Test-Parameters
+# Verify required module is installed or install it
+if (-not (Get-Module -ListAvailable -Name Az.AppConfiguration)) {
+    Install-Module -Name Az.AppConfiguration -Force -Scope CurrentUser -SkipPublisherCheck
+}
 
-# Proceed with the rest of the script
-# Install the necessary module
-Install-Module -Name Az.AppConfiguration -Force -Scope CurrentUser -SkipPublisherCheck
+# Validate input parameters
+Test-Parameters -parameters @($appConfigName, $swaName, $keyVaultName, $cosmosDbAccountName, 
+                             $cosmosDbDatabaseName, $cosmosDbContainerName, $cosmosDbContainerPartitionKey)
 
-$endpoint = "https://$($appConfigName).azconfig.io"
+$endpoint = "https://$appConfigName.azconfig.io"
 
 $keyValuePairs = @{
     "swaName"                        = $swaName
@@ -54,8 +72,8 @@ $keyValuePairs = @{
 
 foreach ($key in $keyValuePairs.Keys) {
     $value = $keyValuePairs[$key]
-    $label = $key  # You can choose either $key or $value depending on your needs
-    
+    $label = $key 
+
     try {
         # Check if the key exists
         $existingKey = Get-AzAppConfigurationKeyValue -Endpoint $endpoint -Key $key -Label $label -ErrorAction SilentlyContinue
@@ -68,8 +86,7 @@ foreach ($key in $keyValuePairs.Keys) {
             Set-AzAppConfigurationKeyValue -Endpoint $endpoint -Key $key -Label $label -Value $value
         }
     } catch {
-        Write-Error "Error while setting key-value for ${key}: $($_.Exception.Message)"
-        exit 1
+        ExitWithError "Error while setting key-value for ${key}: $($_.Exception.Message)"
     }
 }
 

@@ -1,3 +1,5 @@
+# This script assigns the "User Access Administrator" role to a Service Principal for a Cosmos DB account.
+
 param(
     [Parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]

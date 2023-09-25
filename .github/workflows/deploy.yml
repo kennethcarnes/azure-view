@@ -149,29 +149,41 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
       
-      - name: Set scripts permissions
+      - name: Set script execution permissions
         run: |
           chmod +x ./scripts/*.ps1
 
-      - name: Display script content
-        run: |
-          cat ./scripts/Set-CosmosDBRoleDelegation.ps1
-
-      - name: Print variables
-        run: |
-          echo "ResourceGroupName: ${{ inputs.resourceGroupName }}"
-          echo "CosmosDbAccountName: ${{ needs.deploy.outputs.cosmosDbAccountName }}"
-          echo "AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}"
-
-      - name: Set Cosmos DB Role Delegation
+      - name: Set Service Principle Cosmos DB Role Delegation
         uses: azure/powershell@v1
         with:
           azPSVersion: "latest"
           inlineScript: |
             $ErrorActionPreference = "Stop"
-            pwsh ./scripts/Set-CosmosDBRoleDelegation.ps1 `
+            ./scripts/Set-ServicePrincipleCosmosDBRoleDelegation.ps1 `
               -ResourceGroupName "${{ inputs.resourceGroupName }}" `
               -CosmosDbAccountName "${{ needs.deploy.outputs.cosmosDbAccountName }}" `
+              -ServicePrincipalClientId "${{ secrets.AZURE_CLIENT_ID }}"
+
+      - name: Set Service Principle App Config Role Delegation
+        uses: azure/powershell@v1
+        with:
+          azPSVersion: "latest"
+          inlineScript: |
+            $ErrorActionPreference = "Stop"
+            ./scripts/Set-ServicePrincipleAppConfigRoleDelegation.ps1 `
+              -ResourceGroupName "${{ inputs.resourceGroupName }}" `
+              -AppConfigName "${{ needs.deploy.outputs.appConfigName }}" `
+              -ServicePrincipalClientId "${{ secrets.AZURE_CLIENT_ID }}"
+
+      - name: Set Service Principle Function App Role Delegation
+        uses: azure/powershell@v1
+        with:
+          azPSVersion: "latest"
+          inlineScript: |
+            $ErrorActionPreference = "Stop"
+            ./scripts/Set-ServicePrincipleFunctionAppRoleDelegation.ps1 `
+              -ResourceGroupName "${{ inputs.resourceGroupName }}" `
+              -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}" `
               -ServicePrincipalClientId "${{ secrets.AZURE_CLIENT_ID }}"
 
       - name: Set Function App Cosmos DB Permissions
@@ -179,32 +191,19 @@ jobs:
         with:
           azPSVersion: "latest"
           inlineScript: |
+            $ErrorActionPreference = "Stop"
             ./scripts/Set-FunctionAppCosmosDBPermission.ps1 `
               -ResourceGroupName "${{ inputs.resourceGroupName }}" `
               -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}" `
               -CosmosDbAccountName "${{ needs.deploy.outputs.cosmosDbAccountName }}"
 
-      - name: Assign permissions to SP for Azure App Configuration
+      - name: Set App Config Key-Value Pairs
         uses: azure/powershell@v1
         with:
           azPSVersion: "latest"
           inlineScript: |
-            $spId = "${{ secrets.AZURE_CLIENT_ID }}"
-            $appConfigId = (Get-AzAppConfigurationStore -ResourceGroupName "${{ inputs.resourceGroupName }}" -Name "${{ needs.deploy.outputs.appConfigName }}").Id
-
-            # Check if SP has the required permissions
-            $currentAssignments = Get-AzRoleAssignment -ObjectId $spId -Scope $appConfigId -RoleDefinitionName "App Configuration Data Owner"
-            if (-not $currentAssignments) {
-              # Assign the "App Configuration Data Owner" role to the service principal for the Azure App Configuration instance
-              New-AzRoleAssignment -ObjectId $spId -Scope $appConfigId -RoleDefinitionName "App Configuration Data Owner"
-            }
-
-      - name: Set Azure App Configuration
-        uses: azure/powershell@v1
-        with:
-          azPSVersion: "latest"
-          inlineScript: |
-            ./scripts/set-azappconfig.ps1 `
+            $ErrorActionPreference = "Stop"
+            ./scripts/Set-AppConfigKeyValuePairs.ps1 `
               -AppConfigName "${{ needs.deploy.outputs.appConfigName }}" `
               -SwaName "${{ needs.deploy.outputs.swaName }}" `
               -KeyVaultName "${{ needs.deploy.outputs.keyVaultName }}" `
@@ -213,25 +212,27 @@ jobs:
               -CosmosDbContainerName "${{ needs.deploy.outputs.cosmosDbContainerName }}" `
               -CosmosDbContainerPartitionKey "${{ needs.deploy.outputs.cosmosDbContainerPartitionKey }}"
 
+      - name: Set Function App CORS Settings
+        uses: azure/powershell@v1
+        with:
+          azPSVersion: "latest"
+          inlineScript: |
+            $ErrorActionPreference = "Stop"
+            ./scripts/Set-FunctionAppCorsSettings.ps1 `
+              -ResourceGroupName "${{ inputs.resourceGroupName }}" `
+              -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}" `
+              -AllowedOrigins "${{ needs.deploy.outputs.swaUrl }}" `
+              -SubscriptionId "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+
       - name: Replace Placeholders in HTML
         uses: azure/powershell@v1
         with:
           azPSVersion: "latest"
           inlineScript: |
-            ./scripts/replace-placeholders.ps1 `
+            $ErrorActionPreference = "Stop"
+            ./scripts/Set-RepoHtmlPlaceholders.ps1 `
               -HtmlFile "./src/index.html" `
               -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}"
-
-      - name: Update CORS
-        uses: azure/powershell@v1
-        with:
-          azPSVersion: "latest"
-          inlineScript: |
-            ./scripts/update-cors.ps1 `
-              -ResourceGroupName "${{ inputs.resourceGroupName }}" `
-              -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}" `
-              -AllowedOrigins "${{ needs.deploy.outputs.swaUrl }}" `
-              -SubscriptionId "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
   push:
     needs: [deploy, config]
