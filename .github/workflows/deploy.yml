@@ -148,6 +148,10 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
+
+      - name: List available Az modules
+        run: |
+          Get-Module -ListAvailable Az.*
       
       - name: Set script execution permissions
         run: |
@@ -196,6 +200,13 @@ jobs:
               -ResourceGroupName "${{ inputs.resourceGroupName }}" `
               -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}" `
               -CosmosDbAccountName "${{ needs.deploy.outputs.cosmosDbAccountName }}"
+
+      - name: Ensure Az.AppConfiguration Module is Installed
+        run: |
+          $ErrorActionPreference = "Stop"
+          if (-not (Get-Module -ListAvailable -Name Az.AppConfiguration)) {
+            Install-Module -Name Az.AppConfiguration -Force -AllowClobber
+          }
 
       - name: Set App Config Key-Value Pairs
         uses: azure/powershell@v1

@@ -50,11 +50,6 @@ function Test-Parameters {
     }
 }
 
-# Verify required module is installed or install it
-if (-not (Get-Module -ListAvailable -Name Az.AppConfiguration)) {
-    Install-Module -Name Az.AppConfiguration -Force -Scope CurrentUser -SkipPublisherCheck
-}
-
 # Validate input parameters
 Test-Parameters -parameters @($appConfigName, $swaName, $keyVaultName, $cosmosDbAccountName, 
                              $cosmosDbDatabaseName, $cosmosDbContainerName, $cosmosDbContainerPartitionKey)
