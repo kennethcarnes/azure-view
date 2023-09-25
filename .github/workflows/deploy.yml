@@ -198,14 +198,12 @@ jobs:
               -CosmosDbAccountName "${{ needs.deploy.outputs.cosmosDbAccountName }}"
 
       - name: Ensure Az.AppConfiguration Module is Installed
-        uses: azure/powershell@v1
-        with:
-          azPSVersion: "latest"
-          inlineScript: |
-            $ErrorActionPreference = "Stop"
-            if (-not (Get-Module -ListAvailable -Name Az.AppConfiguration -RequiredVersion 1.3.0)) {
-              Install-Module -Name Az.AppConfiguration -RequiredVersion 1.3.0 -Force -Scope CurrentUser -SkipPublisherCheck
-            }
+        run: |
+          $ErrorActionPreference = "Stop"
+          $installedModule = Get-Module -ListAvailable -Name Az.AppConfiguration | Where-Object { $_.Version -eq '1.3.0' }
+          if (-not $installedModule) {
+            Install-Module -Name Az.AppConfiguration -RequiredVersion 1.3.0 -Force -Scope CurrentUser -SkipPublisherCheck
+          }
       
       - name: Set App Config Key-Value Pairs
         uses: azure/powershell@v1
