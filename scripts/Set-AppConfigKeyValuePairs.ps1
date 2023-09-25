@@ -75,10 +75,10 @@ foreach ($key in $keyValuePairs.Keys) {
 
         if ($existingKey) {
             # If key exists, update it
-            Set-AzAppConfigurationKeyValue -Endpoint $endpoint -Key $key -Label $label -Value $value -Overwrite
+            Set-AzAppConfigurationKeyValue -Endpoint $endpoint -Key $key -Label $label -Value $value
         } else {
             # If key doesn't exist, create it
-            Set-AzAppConfigurationKeyValue -Endpoint $endpoint -Key $key -Label $label -Value $value
+            Add-AzAppConfigurationKeyValue -Endpoint $endpoint -Key $key -Label $label -Value $value
         }
     } catch {
         ExitWithError "Error while setting key-value for ${key}: $($_.Exception.Message)"
