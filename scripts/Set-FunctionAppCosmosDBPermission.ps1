@@ -36,62 +36,18 @@ try {
         throw "Cosmos DB Account '$cosmosDbAccountName' does not exist in resource group '$resourceGroupName'."
     }
 
-    # Define custom role for Cosmos DB
-    $customRoleName = "FunctionAppCosmosDBRole"
-    $customRoleActions = @( 
-        'Microsoft.DocumentDB/databaseAccounts/readMetadata',
-        'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*',
-        'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*'
-    )
+    # Use the built-in role name "DocumentDB Account Contributor"
+    $builtinRoleName = "DocumentDB Account Contributor"
 
-    # Check if the role already exists
-    $allRoles = Get-AzCosmosDBSqlRoleDefinition -AccountName $cosmosDbAccountName -ResourceGroupName $resourceGroupName
-    $existingRole = $allRoles | Where-Object { $_.RoleName -eq $customRoleName }
+    # Check if the role assignment already exists
+    $existingRoleAssignment = Get-AzRoleAssignment -ObjectId $objectId -RoleDefinitionName $builtinRoleName -Scope $cosmosDbAccount.Id -ErrorAction SilentlyContinue
 
-    if ($null -eq $existingRole) {
-        New-AzCosmosDBSqlRoleDefinition -AccountName $cosmosDbAccountName `
-            -ResourceGroupName $resourceGroupName `
-            -Type CustomRole -RoleName $customRoleName `
-            -DataAction $customRoleActions `
-            -AssignableScope "/" 
-        Write-Host "Created custom role '$customRoleName' in Cosmos DB account '$cosmosDbAccountName'"
+    if ($null -eq $existingRoleAssignment) {
+        New-AzRoleAssignment -ObjectId $objectId -RoleDefinitionName $builtinRoleName -Scope $cosmosDbAccount.Id
+        Write-Host "Assigned built-in role '$builtinRoleName' to the managed identity of Function App '$functionAppName'"
     } else {
-        Write-Host "Custom role '$customRoleName' already exists in Cosmos DB account '$cosmosDbAccountName'. No action needed."
+        Write-Host "The built-in role '$builtinRoleName' is already assigned to the managed identity of Function App '$functionAppName'. No action needed."
     }
-
-    # Validation for role creation
-    $createdRole = $allRoles | Where-Object { $_.RoleName -eq $customRoleName }
-    if (-not $createdRole) {
-        throw "Failed to retrieve the custom role '$customRoleName' in Cosmos DB account '$cosmosDbAccountName'"
-    }
-
-    # Retry logic for assigning the custom role
-    $maxRetries = 5
-    $retryCount = 0
-    $roleAssigned = $false
-
-    do {
-        try {
-            # Check if the role assignment already exists
-            $existingRoleAssignment = Get-AzRoleAssignment -ObjectId $objectId -RoleDefinitionName $customRoleName -Scope $cosmosDbAccount.Id -ErrorAction SilentlyContinue
-
-            if ($null -eq $existingRoleAssignment) {
-                New-AzRoleAssignment -ObjectId $objectId -RoleDefinitionName $customRoleName -Scope $cosmosDbAccount.Id
-                Write-Host "Assigned custom role '$customRoleName' to the managed identity of Function App '$functionAppName'"
-                $roleAssigned = $true
-            } else {
-                Write-Host "The custom role '$customRoleName' is already assigned to the managed identity of Function App '$functionAppName'. No action needed."
-                $roleAssigned = $true
-            }
-        } catch {
-            $retryCount++
-            if ($retryCount -ge $maxRetries) {
-                throw "Failed to assign the custom role after $maxRetries attempts. Exiting."
-            }
-            Write-Host "Attempt $retryCount to assign the role failed. Retrying in 30 seconds..."
-            Start-Sleep -Seconds 30
-        }
-    } while (-not $roleAssigned)
 
 }
 catch {
