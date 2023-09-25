@@ -263,4 +263,4 @@ jobs:
           Update-AzStaticWebApp `
           -ResourceGroupName ${{ inputs.resourceGroupName }} `
           -Name ${{ needs.deploy.outputs.swaName }} `
-          -AppLocation "./src/"
+          -AppLocation "./src/" 
