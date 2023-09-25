@@ -12,7 +12,7 @@ param(
     [string] $servicePrincipalClientId,
 
     # New: Add a debug switch to control verbose logging.
-    [switch] $debug = $false
+    [switch] $debug
 )
 
 function ExitWithError {
