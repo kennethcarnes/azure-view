@@ -204,10 +204,10 @@ jobs:
       - name: Ensure Az.AppConfiguration Module is Installed
         run: |
           $ErrorActionPreference = "Stop"
-          if (-not (Get-Module -ListAvailable -Name Az.AppConfiguration)) {
-            Install-Module -Name Az.AppConfiguration -Force -AllowClobber
+          if (-not (Get-Module -ListAvailable -Name Az.AppConfiguration -RequiredVersion 1.3.0)) {
+            Install-Module -Name Az.AppConfiguration -RequiredVersion 1.3.0 -Force -Scope CurrentUser -SkipPublisherCheck
           }
-
+      
       - name: Set App Config Key-Value Pairs
         uses: azure/powershell@v1
         with:
