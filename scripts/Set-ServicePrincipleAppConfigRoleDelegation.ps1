@@ -1,6 +1,3 @@
-# This script grants both the "User Access Administrator" and the "App Configuration Data Owner" roles 
-# to a specified Service Principal for a specific Azure App Configuration.
-
 param(
     [Parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]
@@ -27,6 +24,21 @@ function ExitWithError {
     Write-Error "Full Exception: $_"
     Write-Error "StackTrace: $($_.Exception.StackTrace)"
     exit $exitCode
+}
+
+function AssignRoleToServicePrincipal {
+    param (
+        [string] $spObjectId,
+        [string] $roleName
+    )
+    Write-Host "Checking if role assignment exists for Service Principal for role '$roleName'..."
+    $existingAssignment = Get-AzRoleAssignment -ObjectId $spObjectId -RoleDefinitionName $roleName -Scope $appConfigResourceId -ErrorAction SilentlyContinue
+    if ($null -eq $existingAssignment) {
+        Write-Host "No existing role assignment found for role '$roleName'. Assigning now..."
+        New-AzRoleAssignment -ObjectId $spObjectId -RoleDefinitionName $roleName -Scope $appConfigResourceId
+    } else {
+        Write-Host "Role '$roleName' is already assigned to the Service Principal at App Configuration scope. No action needed."
+    }
 }
 
 try {
@@ -57,19 +69,4 @@ try {
 
 } catch { 
     ExitWithError "Caught an exception: $($_)" 1
-}
-
-function AssignRoleToServicePrincipal {
-    param (
-        [string] $spObjectId,
-        [string] $roleName
-    )
-    Write-Host "Checking if role assignment exists for Service Principal for role '$roleName'..."
-    $existingAssignment = Get-AzRoleAssignment -ObjectId $spObjectId -RoleDefinitionName $roleName -Scope $appConfigResourceId -ErrorAction SilentlyContinue
-    if ($null -eq $existingAssignment) {
-        Write-Host "No existing role assignment found for role '$roleName'. Assigning now..."
-        New-AzRoleAssignment -ObjectId $spObjectId -RoleDefinitionName $roleName -Scope $appConfigResourceId
-    } else {
-        Write-Host "Role '$roleName' is already assigned to the Service Principal at App Configuration scope. No action needed."
-    }
 }
