@@ -88,6 +88,6 @@ try {
         Write-Host "Role 'Custom Role Assignment Delegate' is already assigned to the Service Principal at Cosmos DB scope. No action needed."
     }
 
-} catch {
+} catch { 
     ExitWithError "Caught an exception: $($_.Exception.Message)" 1
 }
