@@ -252,6 +252,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.REPOSITORY_TOKEN }}
 
     - name: Commit and push if changed
       run: |
