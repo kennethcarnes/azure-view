@@ -59,4 +59,9 @@ Data is organized based on Azure namespaces, resource types, and API versions, m
 
 ## Security
 
-After deployment is complete, a runner executes the `set-permission.ps1` script. This script assigns scoped permissions to the system assigned managed identity of the Azure Function.
+The Function App authenticates to resources via System-Assigned Managed Identities. The Function App is granted the following roles:
+
+## PowerShell Scripts
+
+
+

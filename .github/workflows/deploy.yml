@@ -58,6 +58,7 @@ jobs:
           parameters: >
             environmentType=${{ inputs.environmentType }}
             repositoryToken=${{ secrets.REPOSITORY_TOKEN }}
+            tenantId=${{ secrets.AZURE_TENANT_ID }}
           additionalArguments: --what-if
 
   deploy:

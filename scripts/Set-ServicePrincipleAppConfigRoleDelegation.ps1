@@ -1,3 +1,6 @@
+
+# This script assigns the 'User Access Administrator' and 'App Configuration Data Owner' roles to a Service Principal.
+
 param(
     [Parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]
