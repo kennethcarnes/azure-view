@@ -16,8 +16,6 @@ on:
         required: true
       AZURE_SUBSCRIPTION_ID:
         required: true
-      REPOSITORY_TOKEN:
-        required: true
 
 jobs:
   validate:
@@ -244,10 +242,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v2 # Using v2
       with:
-        token: ${{ secrets.REPOSITORY_TOKEN }}
-  
+        token: ${{ secrets.REPOSITORY_TOKEN }} # Ensuring the token is used for checkout
+    
     - name: Replace Placeholders in HTML
       uses: azure/powershell@v1
       with:
@@ -267,7 +265,7 @@ jobs:
         git config --global user.name "GitHub Actions"
         git add -A
         git diff-index --quiet HEAD || git commit -m "Automatically replaced function API URL placeholders in HTML [skip ci]"
-        git push origin main
+        git push origin main     
     
     - name: Update Azure Static Web App with latest code
       uses: azure/powershell@v1
