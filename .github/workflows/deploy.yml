@@ -16,6 +16,8 @@ on:
         required: true
       AZURE_SUBSCRIPTION_ID:
         required: true
+      REPOSITORY_TOKEN:
+        required: true
 
 jobs:
   validate:
@@ -242,7 +244,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         token: ${{ secrets.REPOSITORY_TOKEN }}
   
