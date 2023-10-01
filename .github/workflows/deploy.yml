@@ -271,7 +271,7 @@ jobs:
         git config --global user.name "GitHub Actions"
         git add -A
         git diff-index --quiet HEAD || git commit -m "Automatically replaced function API URL placeholders in HTML [skip ci]"
-        git remote set-url origin https://x-access-token:${TOKEN}@github.com/your_username/your_repo.git
+        git remote set-url origin https://x-access-token:${TOKEN}@github.com/kennethcarnes/azure-view.git
         git push origin main     
   
     - name: Update Azure Static Web App with latest code
