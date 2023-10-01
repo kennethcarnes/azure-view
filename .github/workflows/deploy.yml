@@ -135,6 +135,8 @@ jobs:
     permissions:
       id-token: write
       contents: write
+    outputs:  # Add this section
+      sha: ${{ steps.get_sha.outputs.sha }}  
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -179,6 +181,11 @@ jobs:
             } else {
               echo "HTML file not found. Check the path: $htmlFilePath"
             }
+
+      - name: Get the new commit SHA
+        id: get_sha  # This id is used to access the output
+        run: |
+          echo "::set-output name=sha::$(git rev-parse HEAD)"
           
   deploy-frontend-job:
     needs: [deploy-backend-job, update-html-job]
@@ -188,24 +195,13 @@ jobs:
       swaName: ${{ steps.deploy-frontend-step.outputs.swaName }}
       swaUrl: ${{ steps.deploy-frontend-step.outputs.swaUrl }}
     steps:
-      - name: Debug input
-        run: |
-          echo "Environment type is: ${{ inputs.environmentType }}"
-  
-      - name: Check Secret
-        run: |
-          echo "Is secret accessible: ${{ secrets.AZURE_SWA_API_TOKEN != '' }}"
-  
       # Re-checkout repository after update-html-job
       - name: Checkout repository with the latest code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ needs.update-html-job.outputs.sha }}
           fetch-depth: 0
-
-      - name: Get the latest commit SHA
-        run: |
-          echo "Latest commit SHA: $(git rev-parse HEAD)"
         
       - name: Sign in to Azure
         uses: azure/login@v1
@@ -235,10 +231,6 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "./src/"
-  
-      - name: Debug Outputs
-        run: |
-          echo "Outputs: ${{ toJson(steps.deploy-frontend-step.outputs) }}"
                     
   config:
     needs: [deploy-frontend-job, deploy-backend-job]
