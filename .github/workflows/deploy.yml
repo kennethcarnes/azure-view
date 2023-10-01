@@ -246,7 +246,7 @@ jobs:
       contents: write
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         persist-credentials: false
@@ -274,7 +274,7 @@ jobs:
         git add -A
         git diff-index --quiet HEAD || git commit -m "Automatically replaced function API URL placeholders in HTML [skip ci]"
         git remote set-url origin https://x-access-token:${TOKEN}@github.com/kennethcarnes/azure-view.git
-        git push origin main        
+        git push origin ${{ github.ref }}        
   
     - name: Update Azure Static Web App with latest code
       uses: azure/powershell@v1
