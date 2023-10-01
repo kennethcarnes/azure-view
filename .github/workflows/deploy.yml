@@ -239,10 +239,10 @@ jobs:
 
   push:
     needs: [deploy, config]
-    environment: 
-      name: ${{ inputs.environmentType }}
+    environment: ${{ inputs.environmentType }}
     runs-on: ubuntu-latest
     permissions:
+      id-token: write
       contents: write
     steps:
     - name: Checkout code
