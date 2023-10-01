@@ -40,7 +40,7 @@ jobs:
           deploymentName: ${{ github.run_number }}
           resourceGroupName: ${{ inputs.resourceGroupName }}
           scope: resourcegroup
-          template: ./infra/main.bicep
+          template: ./infra/main.bicep 
           parameters: >
             environmentType=${{ inputs.environmentType }}
             repositoryToken=${{ secrets.REPOSITORY_TOKEN }}
