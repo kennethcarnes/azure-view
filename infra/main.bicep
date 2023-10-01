@@ -60,6 +60,9 @@ module frontend './frontend.bicep' = {
     repositoryUrl: selectedFrontendParams.repositoryUrl
     repositoryToken: selectedFrontendParams.repositoryToken
   }
+  dependsOn: [
+    backend
+  ]
 }
 
 // Deploy backend module
