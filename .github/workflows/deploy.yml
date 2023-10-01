@@ -16,6 +16,8 @@ on:
         required: true
       AZURE_SUBSCRIPTION_ID:
         required: true
+      REPOSITORY_TOKEN:
+        required: true
 
 jobs:
   validate:
@@ -245,7 +247,9 @@ jobs:
       uses: actions/checkout@v3
       with:
         token: ${{ secrets.REPOSITORY_TOKEN }}
-            
+        persist-credentials: false
+        fetch-depth: 0
+  
     - name: Replace Placeholders in HTML
       uses: azure/powershell@v1
       with:
@@ -258,7 +262,7 @@ jobs:
             -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}"
           # Verification
           Get-Content "./src/index.html" -Raw | Write-Output
-    
+          
     - name: Commit and push if changed
       run: |
         git config --global user.email "actions@github.com"
@@ -266,7 +270,7 @@ jobs:
         git add -A
         git diff-index --quiet HEAD || git commit -m "Automatically replaced function API URL placeholders in HTML [skip ci]"
         git push origin main     
-    
+  
     - name: Update Azure Static Web App with latest code
       uses: azure/powershell@v1
       with:
