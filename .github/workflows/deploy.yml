@@ -134,36 +134,50 @@ jobs:
       id-token: write
       contents: write
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        persist-credentials: false
-        fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: false
+          fetch-depth: 0
   
-    - name: Replace Placeholders in HTML
-      uses: azure/powershell@v1
-      with:
-        azPSVersion: "latest"
-        inlineScript: |
-          $ErrorActionPreference = "Stop"
-          Write-Output "Function App Name: ${{ needs.deploy-backend-job.outputs.functionAppName }}"
-          ./scripts/Set-RepoHtmlPlaceholders.ps1 `
-            -HtmlFile "./src/index.html" `
-            -FunctionAppName "${{ needs.deploy-backend-job.outputs.functionAppName }}"
-          # Verification
-          Get-Content "./src/index.html" -Raw | Write-Output
+      - name: Replace Placeholders in HTML
+        uses: azure/powershell@v1
+        with:
+          azPSVersion: "latest"
+          inlineScript: |
+            $ErrorActionPreference = "Stop"
+            $htmlFilePath = "./src/index.html"
+            $functionAppName = "${{ needs.deploy-backend-job.outputs.functionAppName }}"
+            
+            Write-Output "Function App Name: $functionAppName"
+            ./scripts/Set-RepoHtmlPlaceholders.ps1 -HtmlFile $htmlFilePath -FunctionAppName $functionAppName
+  
+            # Verification
+            $content = Get-Content $htmlFilePath -Raw
+            Write-Output "Updated HTML Content:"
+            Write-Output $content
+  
+            # Check if there are changes
+            if (Test-Path -Path $htmlFilePath) {
+              git config --global user.email "actions@github.com"
+              git config --global user.name "GitHub Actions"
+              git add $htmlFilePath
+  
+              # Check if there are changes to commit
+              if (git diff-index --quiet HEAD) {
+                echo "No changes to commit."
+              } else {
+                git commit -m "Automatically replaced function API URL placeholders in HTML [skip ci]"
+                git remote set-url origin https://x-access-token:${{ secrets.REPOSITORY_TOKEN }}@github.com/kennethcarnes/azure-view.git
+  
+                # Push changes to the branch
+                git push origin ${{ github.ref }}
+              }
+            } else {
+              echo "HTML file not found. Check the path: $htmlFilePath"
+            }
           
-    - name: Commit and push if changed
-      env:
-        TOKEN: ${{ secrets.REPOSITORY_TOKEN }}
-      run: |
-        git config --global user.email "actions@github.com"
-        git config --global user.name "GitHub Actions"
-        git add -A
-        git diff-index --quiet HEAD || git commit -m "Automatically replaced function API URL placeholders in HTML [skip ci]"
-        git remote set-url origin https://x-access-token:${TOKEN}@github.com/kennethcarnes/azure-view.git
-        git push origin ${{ github.ref }}
 
   deploy-frontend-job:
     needs: [deploy-backend-job, release-job, update-html-job]
