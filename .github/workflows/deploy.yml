@@ -18,6 +18,8 @@ on:
         required: true
       REPOSITORY_TOKEN:
         required: true
+      AZURE_SWA_API_TOKEN:
+        required: true
 
 jobs:
   validate-job:
@@ -192,7 +194,7 @@ jobs:
 
       - name: Check Secret
         run: |
-          echo "Is secret accessible: ${{ secrets.AZURE_SWA_API_TOKEN_TEST != '' }}"
+          echo "Is secret accessible: ${{ secrets.AZURE_SWA_API_TOKEN != '' }}"
         
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -221,11 +223,11 @@ jobs:
       - name: Deploy to Azure Static Web App
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_SWA_API_TOKEN_TEST }}
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_SWA_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "/src"
-
+    
       - name: Debug Outputs 
         run: |
           echo "Outputs: ${{ toJson(steps.deploy-frontend-step.outputs) }}"
