@@ -1,29 +1,19 @@
-name: build bicep files in parallel
+name: Build Bicep Files in Parallel
 
 on:
   workflow_call:
 
 jobs:
-  build-main:
+  build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        bicepFile:
+          - ./infra/backend.bicep
+          - ./infra/frontend.bicep
+          - ./infra/main.bicep
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: Build main.bicep
-        run: az bicep build --file ./infra/main.bicep
-
-  build-frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Build frontend.bicep
-        run: az bicep build --file ./infra/frontend.bicep
-
-  build-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Build backend.bicep
-        run: az bicep build --file ./infra/backend.bicep
+      - name: Build Bicep file
+        run: az bicep build --file ${{ matrix.bicepFile }}
