@@ -186,6 +186,14 @@ jobs:
       swaName: ${{ steps.deploy-frontend-step.outputs.swaName }}
       swaUrl: ${{ steps.deploy-frontend-step.outputs.swaUrl }}
     steps:
+      - name: Debug input
+        run: |
+          echo "Environment type is: ${{ inputs.environmentType }}"
+
+      - name: Check Secret
+        run: |
+          echo "Is secret accessible: ${{ secrets.AZURE_SWA_API_TOKEN_TEST != '' }}"
+        
       - name: Checkout repository
         uses: actions/checkout@v3
             
