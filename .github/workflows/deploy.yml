@@ -191,11 +191,10 @@ jobs:
           deploymentName: ${{ github.run_number }}
           resourceGroupName: ${{ inputs.resourceGroupName }}
           scope: resourcegroup
-          template: ./infra/frontend.bicep
+          template: ./infra/main.bicep
           parameters: >
             environmentType=${{ inputs.environmentType }}
             repositoryToken=${{ secrets.REPOSITORY_TOKEN }}
-            tenantId=${{ secrets.AZURE_TENANT_ID }}
 
       - name: Deploy to Azure Static Web App
         uses: Azure/static-web-apps-deploy@v1
