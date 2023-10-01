@@ -242,6 +242,9 @@ jobs:
     environment: 
       name: ${{ inputs.environmentType }}
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -249,6 +252,14 @@ jobs:
         token: ${{ secrets.REPOSITORY_TOKEN }}
         persist-credentials: false
         fetch-depth: 0
+
+    - name: Sign in to Azure
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        enable-AzPSSession: true
   
     - name: Replace Placeholders in HTML
       uses: azure/powershell@v1
@@ -262,6 +273,17 @@ jobs:
             -FunctionAppName "${{ needs.deploy.outputs.functionAppName }}"
           # Verification
           Get-Content "./src/index.html" -Raw | Write-Output
+          
+    - name: Commit and push if changed
+      env:
+        TOKEN: ${{ secrets.REPOSITORY_TOKEN }}
+      run: |
+        git config --global user.email "actions@github.com"
+        git config --global user.name "GitHub Actions"
+        git add -A
+        git diff-index --quiet HEAD || git commit -m "Automatically replaced function API URL placeholders in HTML [skip ci]"
+        git remote set-url origin https://x-access-token:${TOKEN}@github.com/kennethcarnes/azure-view.git
+        git push origin main
     
     - name: Update Azure Static Web App with latest code
       uses: azure/powershell@v1
