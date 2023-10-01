@@ -242,10 +242,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2 # Using v2
+      uses: actions/checkout@v3
       with:
-        token: ${{ secrets.REPOSITORY_TOKEN }} # Ensuring the token is used for checkout
-    
+        token: ${{ secrets.REPOSITORY_TOKEN }}
+            
     - name: Replace Placeholders in HTML
       uses: azure/powershell@v1
       with:
