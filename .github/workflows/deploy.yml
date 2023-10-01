@@ -218,7 +218,7 @@ jobs:
           action: "upload"
           app_location: "/src"
 
-      - name: Debug Outputs
+      - name: Debug Outputs 
         run: |
           echo "Outputs: ${{ toJson(steps.deploy-frontend-step.outputs) }}"
         
