@@ -18,6 +18,9 @@ jobs:
   deploy-test:
     uses: ./.github/workflows/deploy.yml
     needs: bicep-build
+    permissions:
+      id-token: write
+      contents: read
     with:
       environmentType: Test
       resourceGroupName: rg-azure-view-test-001
@@ -30,6 +33,9 @@ jobs:
   deploy-production:
     uses: ./.github/workflows/deploy.yml
     needs: deploy-test
+    permissions:
+      id-token: write
+      contents: read
     with:
       environmentType: Production
       resourceGroupName: rg-azure-view-prod-001
