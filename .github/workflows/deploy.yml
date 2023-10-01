@@ -191,14 +191,18 @@ jobs:
       - name: Debug input
         run: |
           echo "Environment type is: ${{ inputs.environmentType }}"
-
+  
       - name: Check Secret
         run: |
           echo "Is secret accessible: ${{ secrets.AZURE_SWA_API_TOKEN != '' }}"
-        
-      - name: Checkout repository
-        uses: actions/checkout@v3
-            
+  
+      # Re-checkout repository after update-html-job
+      - name: Checkout repository with the latest code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+  
       - name: Sign in to Azure
         uses: azure/login@v1
         with:
@@ -219,7 +223,7 @@ jobs:
             environmentType=${{ inputs.environmentType }}
             repositoryToken=${{ secrets.REPOSITORY_TOKEN }}
             tenantId=${{ secrets.AZURE_TENANT_ID }}
-
+  
       - name: Deploy to Azure Static Web App
         uses: Azure/static-web-apps-deploy@v1
         with:
@@ -227,11 +231,11 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "/src"
-    
+  
       - name: Debug Outputs 
         run: |
           echo "Outputs: ${{ toJson(steps.deploy-frontend-step.outputs) }}"
-        
+                    
   config:
     needs: [deploy-frontend-job, deploy-backend-job]
     environment: ${{ inputs.environmentType }}
