@@ -202,7 +202,11 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-  
+
+      - name: Get the latest commit SHA
+        run: |
+          echo "Latest commit SHA: $(git rev-parse HEAD)"
+        
       - name: Sign in to Azure
         uses: azure/login@v1
         with:
@@ -230,9 +234,9 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_SWA_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "/src"
+          app_location: "./src/"
   
-      - name: Debug Outputs 
+      - name: Debug Outputs
         run: |
           echo "Outputs: ${{ toJson(steps.deploy-frontend-step.outputs) }}"
                     
