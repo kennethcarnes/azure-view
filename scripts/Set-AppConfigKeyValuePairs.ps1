@@ -7,10 +7,6 @@ param(
 
     [Parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]
-    [string]$swaName,
-
-    [Parameter(Mandatory=$true)]
-    [ValidateNotNullOrEmpty()]
     [string]$keyVaultName,
 
     [Parameter(Mandatory=$true)]
@@ -51,13 +47,12 @@ function Test-Parameters {
 }
 
 # Validate input parameters
-Test-Parameters -parameters @($appConfigName, $swaName, $keyVaultName, $cosmosDbAccountName, 
+Test-Parameters -parameters @($appConfigName, $keyVaultName, $cosmosDbAccountName, 
                              $cosmosDbDatabaseName, $cosmosDbContainerName, $cosmosDbContainerPartitionKey)
 
 $endpoint = "https://$appConfigName.azconfig.io"
 
 $keyValuePairs = @{
-    "swaName"                        = $swaName
     "keyVaultName"                   = $keyVaultName
     "cosmosDbAccountName"            = $cosmosDbAccountName
     "cosmosDbDatabaseName"           = $cosmosDbDatabaseName

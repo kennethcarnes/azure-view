@@ -1,47 +1,39 @@
-# This script updates an HTML file by replacing placeholder API URLs with actual API endpoints associated with a specified Azure Function App.
-
 param (
     [Parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]
-    [ValidateScript({
-        if (-not (Test-Path $_)) {
-            throw "The file path '$_' does not exist."
-        }
-        if (-not ($_ -match "\.html$")) {
-            throw "The file '$_' is not an HTML file."
-        }
-        return $true
-    })]
-    [string] $htmlFile,
+    [string] $HtmlFile,
 
     [Parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]
-    [string] $functionAppName
+    [string] $ApimName
 )
 
 try {
-    # Get the content of the HTML file
-    $content = Get-Content $htmlFile -Raw
-
-    # Define a hashtable of placeholders and their replacements
-    $replacements = @{
-        'func-ingest-data-ApiUrlPlaceholder'     = "https://$functionAppName.azurewebsites.net/api/func-ingest-data";
-        'func-retrieve-data-ApiUrlPlaceholder'  = "https://$functionAppName.azurewebsites.net/api/func-retrieve-data";
+    $OriginalContent = Get-Content -Path $HtmlFile -Raw
+    
+    $Replacements = @{
+        'apim-ingest-ApiUrlPlaceholder' = "https://$ApimName.azure-api.net/api/ingest";
+        'apim-retrieve-ApiUrlPlaceholder' = "https://$ApimName.azure-api.net/api/retrieve";
     }
-
-    # Iterate over each placeholder and replace in content
-    foreach ($placeholder in $replacements.Keys) {
-        if ($content -match $placeholder) {
-            $content = $content -replace $placeholder, $replacements[$placeholder]
+    
+    $UpdatedContent = $OriginalContent
+    foreach ($Placeholder in $Replacements.Keys) {
+        if ($UpdatedContent -match $Placeholder) {
+            $UpdatedContent = $UpdatedContent -replace $Placeholder, $Replacements[$Placeholder]
         } else {
-            throw "Placeholder '$placeholder' not found in $htmlFile."
+            Write-Warning "Placeholder '$Placeholder' not found in $HtmlFile."
         }
     }
 
-    # Write the updated content back to the file
-    $content | Set-Content $htmlFile
+    # Only write back if content has changed
+    if ($UpdatedContent -ne $OriginalContent) {
+        $UpdatedContent | Set-Content -Path $HtmlFile
+        Write-Output "Placeholders replaced in $HtmlFile."
+    } else {
+        Write-Output "No changes were made to $HtmlFile."
+    }
 }
 catch {
-    Write-Error "Error updating placeholders in $htmlFile. Details: $_"
+    Write-Error "Error updating placeholders in $HtmlFile. Details: $_"
     exit 1
 }

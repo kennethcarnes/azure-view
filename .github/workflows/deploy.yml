@@ -26,7 +26,7 @@ jobs:
      runs-on: ubuntu-latest
      steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Sign in to Azure
         uses: azure/login@v1
@@ -77,7 +77,7 @@ jobs:
       cosmosDbContainerPartitionKey: ${{ steps.deploy-backend-step.outputs.cosmosDbContainerPartitionKey }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
   
       - name: Sign in to Azure
         uses: azure/login@v1
@@ -101,10 +101,6 @@ jobs:
             environmentType=${{ inputs.environmentType }}
             repositoryToken=${{ secrets.REPOSITORY_TOKEN }}
             tenantId=${{ secrets.AZURE_TENANT_ID }}
-      
-      - name: Debug Outputs
-        run: |
-          echo "Outputs: ${{ toJson(steps.deploy-backend-step.outputs) }}"
     
   release-job:
     needs: deploy-backend-job
@@ -112,7 +108,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Sign in to Azure
         uses: azure/login@v1
@@ -128,79 +124,24 @@ jobs:
           app-name: ${{ needs.deploy-backend-job.outputs.functionAppName }}
           package: ./functions/
 
-  update-html-job:
+  deploy-frontend-job:
     needs: [deploy-backend-job, release-job]
     environment: ${{ inputs.environmentType }}
     runs-on: ubuntu-latest
+    outputs:
+      swaName: ${{ steps.deploy-frontend-step.outputs.swaName }}
+      swaUrl: ${{ steps.deploy-frontend-step.outputs.swaUrl }}
+      apimName: ${{ steps.deploy-frontend-step.outputs.apimName }}
+      apimUrl: ${{ steps.deploy-frontend-step.outputs.apimUrl }}
     permissions:
       id-token: write
       contents: write
-    outputs:  # Add this section
-      sha: ${{ steps.get_sha.outputs.sha }}  
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: false
-          fetch-depth: 0
-  
-      - name: Replace Placeholders in HTML
-        uses: azure/powershell@v1
-        with:
-          azPSVersion: "latest"
-          inlineScript: |
-            $ErrorActionPreference = "Stop"
-            $htmlFilePath = "./src/index.html"
-            $functionAppName = "${{ needs.deploy-backend-job.outputs.functionAppName }}"
-            
-            Write-Output "Function App Name: $functionAppName"
-            ./scripts/Set-RepoHtmlPlaceholders.ps1 -HtmlFile $htmlFilePath -FunctionAppName $functionAppName
-  
-            # Verification
-            $content = Get-Content $htmlFilePath -Raw
-            Write-Output "Updated HTML Content:"
-            Write-Output $content
-  
-            # Check if there are changes
-            if (Test-Path -Path $htmlFilePath) {
-              git config --global user.email "actions@github.com"
-              git config --global user.name "GitHub Actions"
-              git add $htmlFilePath
-  
-              # Check if there are changes to commit
-              if (git diff-index --quiet HEAD) {
-                echo "No changes to commit."
-              } else {
-                git commit -m "Automatically replaced function API URL placeholders in HTML [skip ci]"
-                git remote set-url origin https://x-access-token:${{ secrets.REPOSITORY_TOKEN }}@github.com/kennethcarnes/azure-view.git
-  
-                # Push changes to the branch
-                git push origin ${{ github.ref }}
-              }
-            } else {
-              echo "HTML file not found. Check the path: $htmlFilePath"
-            }
-
-      - name: Get the new commit SHA
-        id: get_sha  # This id is used to access the output
-        run: |
-          echo "::set-output name=sha::$(git rev-parse HEAD)"
-          
-  deploy-frontend-job:
-    needs: [deploy-backend-job, update-html-job]
-    environment: ${{ inputs.environmentType }}
-    runs-on: ubuntu-latest
-    outputs:
-      swaName: ${{ steps.deploy-frontend-step.outputs.swaName }}
-      swaUrl: ${{ steps.deploy-frontend-step.outputs.swaUrl }}
-    steps:
-      # Re-checkout repository after update-html-job
-      - name: Checkout repository with the latest code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          ref: ${{ needs.update-html-job.outputs.sha }}
           fetch-depth: 0
         
       - name: Sign in to Azure
@@ -209,13 +150,13 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-  
-      - name: Deploy Frontend Infrastructure
+    
+      - name: Deploy Frontend
         id: deploy-frontend-step
         uses: azure/arm-deploy@v1
         with:
-          deploymentMode: Incremental 
-          deploymentName: ${{ github.run_number }}
+          failOnStdErr: true
+          deploymentMode: ${{ (inputs.environmentType == 'Test') && 'Complete' || 'Incremental' }} 
           resourceGroupName: ${{ inputs.resourceGroupName }}
           scope: resourcegroup
           template: ./infra/main.bicep
@@ -223,22 +164,58 @@ jobs:
             environmentType=${{ inputs.environmentType }}
             repositoryToken=${{ secrets.REPOSITORY_TOKEN }}
             tenantId=${{ secrets.AZURE_TENANT_ID }}
-  
+
+      - name: Get API Management Name
+        id: deploy-frontend-job
+        run: |
+          apimName=$(az deployment group show --name ${{ github.run_number }} --resource-group ${{ inputs.resourceGroupName }} --query 'properties.outputs.apimName.value' --output tsv)
+          echo "API Management Name: $apimName"
+          echo "apimName=$apimName" >> $GITHUB_ENV
+
+      - name: Replace Placeholders in HTML
+        uses: azure/powershell@v1
+        with:
+          azPSVersion: 'latest'
+          inlineScript: |
+            $ErrorActionPreference = "Stop"
+            $htmlFilePath = "./app/index.html"
+            $apimName = "${{ steps.deploy-frontend-job.outputs.apimName }}"
+              
+              Write-Output "API Management Instance Name: $apimName"
+              ./scripts/Set-RepoHtmlPlaceholders.ps1 -HtmlFile $htmlFilePath -ApimName $apimName
+          
+              # Verification
+              $content = Get-Content $htmlFilePath -Raw
+              Write-Output "Updated HTML Content: $content"
+          
+              # Check for changes
+              git config --global user.email "actions@github.com"
+              git config --global user.name "GitHub Actions"
+              git add $htmlFilePath
+                
+              if (git diff-index --quiet HEAD --) {
+                Write-Output "No changes to commit."
+              } else {
+                git commit -m "Automatically replaced API URL placeholders in HTML [skip ci]"
+                git remote set-url origin https://x-access-token:${{ secrets.REPOSITORY_TOKEN }}@github.com/kennethcarnes/azure-view.git
+                git push origin ${{ github.ref }}
+              }
+      
       - name: Deploy to Azure Static Web App
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_SWA_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "./src/"
+          app_location: "app"          
                     
-  config:
+  config-job:
     needs: [deploy-frontend-job, deploy-backend-job]
     environment: ${{ inputs.environmentType }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Sign in to Azure
         uses: azure/login@v1
@@ -315,21 +292,8 @@ jobs:
             $ErrorActionPreference = "Stop"
             ./scripts/Set-AppConfigKeyValuePairs.ps1 `
               -AppConfigName "${{ needs.deploy-backend-job.outputs.appConfigName }}" `
-              -SwaName "${{ needs.deploy-frontend-job.outputs.swaName }}" `
               -KeyVaultName "${{ needs.deploy-backend-job.outputs.keyVaultName }}" `
               -CosmosDbAccountName "${{ needs.deploy-backend-job.outputs.cosmosDbAccountName }}" `
               -CosmosDbDatabaseName "${{ needs.deploy-backend-job.outputs.cosmosDbDatabaseName }}" `
               -CosmosDbContainerName "${{ needs.deploy-backend-job.outputs.cosmosDbContainerName }}" `
               -CosmosDbContainerPartitionKey "${{ needs.deploy-backend-job.outputs.cosmosDbContainerPartitionKey }}"
-
-      - name: Set Function App CORS Settings
-        uses: azure/powershell@v1
-        with:
-          azPSVersion: "latest"
-          inlineScript: |
-            $ErrorActionPreference = "Stop"
-            ./scripts/Set-FunctionAppCorsSettings.ps1 `
-              -ResourceGroupName "${{ inputs.resourceGroupName }}" `
-              -FunctionAppName "${{ needs.deploy-backend-job.outputs.functionAppName }}" `
-              -AllowedOrigins "${{ needs.deploy-frontend-job.outputs.swaUrl }}" `
-              -SubscriptionId "${{ secrets.AZURE_SUBSCRIPTION_ID }}"

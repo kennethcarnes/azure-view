@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure Management API Visualizer</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+
+<body>
+    <div class="centered-container">
+        <div class="centered">
+            <h1>Azure Management API Visualizer</h1>
+            <div id="controlPanel">
+                <button id="fetchLatestData" class="action-button">Fetch Latest Data</button>
+                <button id="retrieveData" class="action-button">Retrieve Data</button>
+            </div>
+            <div id="loader" style="display:none;">Loading...</div>
+            <div id="errorMsg" style="color: red;"></div>
+            <div id="sunburstPlot"></div>
+        </div>
+    </div>
+    <script>
+        const fetchApiUrl = 'apim-ingest-ApiUrlPlaceholder';
+        const retrieveApiUrl = 'apim-retrieve-ApiUrlPlaceholder';
+
+        document.getElementById('fetchLatestData').addEventListener('click', () => {
+            showLoader();
+            fetch(fetchApiUrl, { 
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoader();
+                console.log('Data fetched:', data);
+            })
+            .catch(error => {
+                hideLoader();
+                showError('Error fetching data: ' + error.message);
+            });
+        });
+    
+        document.getElementById('retrieveData').addEventListener('click', () => {
+            showLoader();
+            fetch(retrieveApiUrl, { 
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoader();
+                Plotly.newPlot('sunburstPlot', [{
+                    type: 'sunburst',
+                    ids: data.ids,
+                    labels: data.labels,
+                    parents: data.parents,
+                }], {
+                    margin: { l: 0, r: 0, b: 0, t: 0 },
+                    sunburstcolorway: ['#636efa', '#ef553b', '#00cc96'],
+                    paper_bgcolor: '#1a1a1a',
+                    font: {
+                        color: '#ffffff',
+                    },
+                });
+            })
+            .catch(error => {
+                hideLoader();
+                showError('Error retrieving data: ' + error.message);
+            });
+        });
+
+        // Helper function to show the loader
+        function showLoader() {
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('errorMsg').textContent = '';
+        }
+
+        // Helper function to hide the loader
+        function hideLoader() {
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        // Helper function to show an error message
+        function showError(msg) {
+            document.getElementById('errorMsg').textContent = msg;
+        }
+    </script>
+</body>
+
+</html>

@@ -15,12 +15,15 @@ var selectedFrontendParams = environmentType == 'Test' ? {
   swaSkuTier: 'Free'
   repositoryUrl: 'https://github.com/kennethcarnes/azure-view'
   repositoryToken: repositoryToken
+  apimName: 'apim-azure-view-test-001'
 } : {
   swaName: 'swa-azure-view-prod-001'
   swaSkuName: 'Standard'
   swaSkuTier: 'Standard'
   repositoryUrl: 'https://github.com/kennethcarnes/azure-view'
   repositoryToken: repositoryToken
+  apimName: 'apim-azure-view-prod-001'
+  apiName: 'api-azure-view-prod-001'
 }
 
 // Choose backend parameters based on environment type
@@ -59,6 +62,7 @@ module frontend './frontend.bicep' = {
     swaSkuTier: selectedFrontendParams.swaSkuTier
     repositoryUrl: selectedFrontendParams.repositoryUrl
     repositoryToken: selectedFrontendParams.repositoryToken
+    apimName: selectedFrontendParams.apimName
   }
   dependsOn: [
     backend
@@ -87,6 +91,8 @@ module backend './backend.bicep' = {
 // Outputs
 output swaName string = frontend.outputs.swaName
 output swaUrl string = frontend.outputs.swaUrl
+output apimName string = frontend.outputs.apimName
+output apimUrl string = frontend.outputs.apimUrl
 output functionAppName string = backend.outputs.functionAppName
 output keyVaultName string = backend.outputs.keyVaultName
 output appConfigName string = backend.outputs.appConfigName
