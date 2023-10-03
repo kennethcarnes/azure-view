@@ -5,7 +5,6 @@ param swaSkuTier string
 param repositoryUrl string
 param branch string
 param apimName string
-param apimSkuName string = 'Consumption' 
 @secure()
 param repositoryToken string
 
@@ -39,7 +38,7 @@ resource apim 'Microsoft.ApiManagement/service@2021-08-01' = {
   location: location
   sku: {
     capacity: 0 
-    name: apimSkuName
+    name: 'Consumption'
   }
   properties: {
     publisherName: 'Kenneth Carnes'
@@ -52,7 +51,7 @@ resource apim 'Microsoft.ApiManagement/service@2021-08-01' = {
 
 resource api 'Microsoft.ApiManagement/service/apis@2021-08-01' = {
   parent: apim
-  name: 'api-azure-view'
+  name: 'api'
   properties: {
     path: 'api'
     protocols: [
@@ -65,7 +64,7 @@ resource apiIngestOperation 'Microsoft.ApiManagement/service/apis/operations@202
   parent: api
   name: 'ingest'
   properties: {
-    displayName: 'ingest'
+    displayName: 'Ingest Data'
     method: 'GET'
     urlTemplate: '/ingest'
     request: {
@@ -98,7 +97,7 @@ resource apiRetrieveOperation 'Microsoft.ApiManagement/service/apis/operations@2
   parent: api
   name: 'retrieve'
   properties: {
-    displayName: 'retrieve'
+    displayName: 'Retrieve Data'
     method: 'GET'
     urlTemplate: '/retrieve'
     request: {
@@ -135,7 +134,6 @@ resource apiPolicy 'Microsoft.ApiManagement/service/apis/policies@2021-04-01-pre
                   </allowed-origins>
                   <allowed-methods>
                     <method>GET</method>
-                    <method>POST</method>
                   </allowed-methods>
                 </cors>
               </inbound>

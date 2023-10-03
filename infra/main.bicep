@@ -23,7 +23,6 @@ var selectedFrontendParams = environmentType == 'Test' ? {
   repositoryUrl: 'https://github.com/kennethcarnes/azure-view'
   repositoryToken: repositoryToken
   apimName: 'apim-azure-view-prod-001'
-  apiName: 'api-azure-view-prod-001'
 }
 
 // Choose backend parameters based on environment type
