@@ -66,16 +66,25 @@ Data is organized based on Azure namespaces, resource types, and API versions, m
 
 - `backend.bicep`: Sets up an Azure Function which runs the `fetch-and-store.ps1` script on initial deployment, and again every 24 hours. It also sets up an Azure Cosmos DB with default automatic indexing, configures a 24 hour TTL, and `resourceType` as the partition key.
 
-## Parameters and Secrets
+# Parameters and Secrets
 - Parameters that pertain to infrastructure are stored in `main.bicep`
 - Secrets that pertain to CI/CD are stored in Github Actions Secrets
 - Secrets that pertain to infrastructure are stored in Azure Key vault
 
-## Security
-
-The Function App authenticates to resources via System-Assigned Managed Identities. The Function App is granted the following roles:
-
 ## PowerShell Scripts
+- **Set-AppConfigKVPs.ps1**: This script sets key-value pairs on an Azure App Configuration.
+  
+- **Set-FuncAppAppConfigPerms.ps1**: This script assigns the "App Configuration Data Reader" role to a Function App's Managed Identity, allowing it to read key-value pairs from a specified App Configuration.
+  
+- **Set-FuncAppCosmosDBPerms.ps1**: This script assigns the "DocumentDB Account Contributor" role to a Function App's Managed Identity for a Cosmos DB account.
+  
+- **Set-RepoPlaceholders.ps1**: This script updates the placeholders in an HTML file with specific values for API Management (APIM).
+  
+- **Set-SPAppConfigRoleDelegate.ps1**: This script assigns the 'User Access Administrator' and 'App Configuration Data Owner' roles to a Service Principal.
+  
+- **Set-SPCosmosDBRoleDelegate.ps1**: This script assigns the "User Access Administrator" role to a Service Principal for a Cosmos DB account.
+  
+- **Set-SPFuncAppRoleDelegate.ps1**: This script assigns the "Contributor" role to a Service Principal for a Azure Function App.
 
 
 
