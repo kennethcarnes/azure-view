@@ -1,14 +1,35 @@
-# Azure REST API Visualization Dashboard
-This is a public website that displays a daily-updated dashboard designed to visualize the hierarchy and availability of Azure's REST API offerings. Utilizing a browsable Sunburst Chart, it provides a comprehensive yet simplified representation of Azure namespaces, resource types, and API versions.
+# ARM Viz
+ARM Viz is a public website that helps to visualize the hierarchy and availability of [Azure Resource Manager REST API](https://learn.microsoft.com/en-us/rest/api/resources/) offerings. Utilizing a browsable Sunburst Chart, it provides a comprehensive yet simplified representation of Azure namespaces, resource types, and API versions.
 
 ## Data Flow
-1. When the solution is deployed, an Azure Function fetches and stores the latest JSON data for all Azure namespaces, resource types, and API versions from Azure's REST API.
+1. The "ingest data" button uses Azure Static Web App API to trigger an Azure Function to fetch and store the latest JSON data for all Azure namespaces, resource types, and API versions from the ARM API within A Cosmos DB Table.
    
-2. When a user visits the dashboard, the front-end retrieves pre-existing data from Cosmos DB to populate the Sunburst Chart visualization.
-   
-3. The user can interact with the Sunburst Chart to explore the structure and versions of Azure's REST APIs.
-   
-4. The Azure Function is set to re-run automatically every 24 hours to refresh the data.
+2. Similarly, the "retrieve data" button  triggers a seperate function to retrieve the latest data from Cosmos DB and populate the Sunburst Chart.
+
+
+```mermaid
+graph LR
+    User[User] -->|1. Access| swa[Azure Static Web App]
+    swa -->|2. Click| ingestButton[Ingest Data Button]
+    swa -->|3. Click| retrieveButton[Retrieve Data Button]
+    ingestButton -->|4.| APIM[Azure API Management]
+    retrieveButton -->|5.| APIM
+    APIM -->|6. Check| corsConfig[CORS Configuration]
+    APIM -->|7. Ingest| ingestOperation[API Ingest Operation]
+    APIM -->|8. Retrieve| retrieveOperation[API Retrieve Operation]
+    ingestOperation -->|9.| funcIngestData[Function - Ingest Data]
+    retrieveOperation -->|10.| funcRetrieveData[Function - Retrieve Data]
+    funcIngestData -->|11. Fetch| ARMAPI[ARM API]
+    funcIngestData -->|12. Store| Cosmos[Cosmos DB]
+    funcRetrieveData -->|13. Fetch| Cosmos
+    ARMAPI -->|14. Return| funcIngestData
+    Cosmos -->|15. Return Data| funcRetrieveData
+    funcRetrieveData -->|16. Return| retrieveOperation
+    funcIngestData -->|17. Confirm| ingestOperation
+    retrieveOperation -->|18. Display| swa
+    ingestOperation -->|19. Display| swa
+    swa -->|20. View| User
+```
 
 ## Data Modeling
 Data is organized based on Azure namespaces, resource types, and API versions, making it easy for users to navigate and explore the Sunburst Chart.
@@ -27,7 +48,40 @@ Data is organized based on Azure namespaces, resource types, and API versions, m
                 "apiVersions": ["2021-07-01", "2020-12-01", ...]
             }
         ]
-    }
+    }graph TB
+
+    A[ARM Viz Platform]
+
+    B1["Ingest Data Button"]
+    B2["Retrieve Data Button"]
+
+    C1[Azure Static Web App API]
+    C2[Azure Static Web App API]
+
+    D1[Azure Function: Fetch Data]
+    D2[Azure Function: Retrieve Data]
+
+    E1[ARM API]
+    E2[Cosmos DB Table]
+
+    F[Sunburst Chart]
+
+    A --> B1
+    A --> B2
+
+    B1 --> C1
+    B2 --> C2
+
+    C1 --> D1
+    C2 --> D2
+
+    D1 --> E1
+    D2 --> E2
+
+    E1 --> E2
+
+    D2 --> F
+
     ```
 
 ## CI/CD Orchestration

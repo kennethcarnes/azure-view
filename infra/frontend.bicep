@@ -1,19 +1,21 @@
-param swaName string
-param location string
-param swaSkuName string
-param swaSkuTier string
-param repositoryUrl string
-param branch string
-param apimName string
+// Parameters for the Bicep template
+param swaName string          // Name of the Static Web App
+param location string         // Azure region for deployment
+param swaSkuName string       // SKU name for the Static Web App
+param swaSkuTier string       // SKU tier for the Static Web App
+param repositoryUrl string    // Repository URL for the source code of the web app
+param branch string           // Branch to use from the repository
+param apimName string         // Name of the Azure API Management service
 @secure()
-param repositoryToken string
+param repositoryToken string  // Secure token for accessing the repository
 
-// Outputs
+// Outputs after the template is deployed
 output swaName string = swa.name
 output swaUrl string = swa.properties.defaultHostname
 output apimName string = apim.name
 output apimUrl string = apim.properties.gatewayRegionalUrl
 
+// Resource definition for Static Web App
 resource swa 'Microsoft.Web/staticSites@2022-03-01' = {
   name: swaName
   location: location
@@ -26,13 +28,14 @@ resource swa 'Microsoft.Web/staticSites@2022-03-01' = {
     branch: branch
     repositoryToken: repositoryToken
     buildProperties: {
-      appLocation: 'app'
-      apiLocation: 'api'
-      appArtifactLocation: ''
+      appLocation: 'app'                  // Location of the web app
+      apiLocation: 'api'                  // API location
+      appArtifactLocation: ''             // Location for build artifacts (empty here)
     }
   }
 }
 
+// Resource definition for Azure API Management service
 resource apim 'Microsoft.ApiManagement/service@2021-08-01' = {
   name: apimName
   location: location
@@ -41,14 +44,15 @@ resource apim 'Microsoft.ApiManagement/service@2021-08-01' = {
     name: 'Consumption'
   }
   properties: {
-    publisherName: 'Kenneth Carnes'
-    publisherEmail: 'kc@kennethcarnes.com'
+    publisherName: 'Kenneth Carnes'      // Name of the publisher
+    publisherEmail: 'kc@kennethcarnes.com' // Email of the publisher
   }
   identity: {
-    type: 'SystemAssigned'
+    type: 'SystemAssigned'               // Type of managed identity
   }  
 }
 
+// Resource definition for API within Azure API Management
 resource api 'Microsoft.ApiManagement/service/apis@2021-08-01' = {
   parent: apim
   name: 'api'
@@ -60,6 +64,7 @@ resource api 'Microsoft.ApiManagement/service/apis@2021-08-01' = {
   }
 }
 
+// Resource definition for an "ingest" operation within the API
 resource apiIngestOperation 'Microsoft.ApiManagement/service/apis/operations@2021-08-01' = {
   parent: api
   name: 'ingest'
@@ -93,6 +98,7 @@ resource apiIngestOperation 'Microsoft.ApiManagement/service/apis/operations@202
   }
 }
 
+// Resource definition for a "retrieve" operation within the API
 resource apiRetrieveOperation 'Microsoft.ApiManagement/service/apis/operations@2021-08-01' = {
   parent: api
   name: 'retrieve'
@@ -120,7 +126,7 @@ resource apiRetrieveOperation 'Microsoft.ApiManagement/service/apis/operations@2
   }
 }
 
-
+// Resource definition for a policy for the API
 resource apiPolicy 'Microsoft.ApiManagement/service/apis/policies@2021-04-01-preview' = {
   parent: api
   name: 'policy'
