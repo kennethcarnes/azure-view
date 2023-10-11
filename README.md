@@ -28,18 +28,18 @@ graph TB
 ## Data Modeling
 Data is organized based on Azure namespaces, resource types, and API versions, making it easy for users to navigate and explore the Sunburst Chart.
 
-- JSON snippet:
+- Example JSON snippet:
     ```json
     {
         "namespace": "Microsoft.Compute",
         "resourceTypes": [
             {
                 "resourceType": "virtualMachines",
-                "apiVersions": ["2021-07-01", "2020-12-01", ...]
+                "apiVersions": ["2021-07-01", "2020-12-01"]
             },
             {
                 "resourceType": "disks",
-                "apiVersions": ["2021-07-01", "2020-12-01", ...]
+                "apiVersions": ["2021-07-01", "2020-12-01"]
             }
         ]
     }
@@ -48,6 +48,7 @@ Data is organized based on Azure namespaces, resource types, and API versions, m
 - Deployment to multiple environments via Github Actions
   ![Deployment Screenshot](/images/image-3.png)  
   [Learn More](https://learn.microsoft.com/en-us/training/modules/manage-multiple-environments-using-bicep-github-actions/2-understand-environments)
+
   
 - Separate workload identities for each environment  
   ![Workload Identities](/images/image-1.png)  

@@ -1,4 +1,4 @@
-name: Build Bicep Files in Parallel
+name: build
 
 on:
   workflow_call:
@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        # Define multiple Bicep files to build in parallel
         bicepFile:
           - ./infra/backend.bicep
           - ./infra/frontend.bicep
@@ -16,4 +17,5 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Build Bicep file
+        # Use Azure CLI to build the specified Bicep file from the matrix
         run: az bicep build --file ${{ matrix.bicepFile }}

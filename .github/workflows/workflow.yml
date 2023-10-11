@@ -1,4 +1,4 @@
-name: deploy-azure-view-environments
+name: workflow
 
 on:
   push:
@@ -11,10 +11,11 @@ permissions:
   contents: write
 
 jobs:
-
+  # Build the Bicep templates
   bicep-build:
     uses: ./.github/workflows/build.yml
 
+  # Deploy to the Test environment after Bicep build completes
   deploy-test:
     uses: ./.github/workflows/deploy.yml
     needs: bicep-build
@@ -28,6 +29,7 @@ jobs:
       REPOSITORY_TOKEN: ${{ secrets.REPOSITORY_TOKEN }}
       AZURE_SWA_API_TOKEN: ${{ secrets.AZURE_SWA_API_TOKEN }}
 
+  # Deploy to Production only after successful Test deployment
   deploy-production:
     uses: ./.github/workflows/deploy.yml
     needs: deploy-test
