@@ -182,7 +182,7 @@ jobs:
             $apimName = "${{ steps.deploy-frontend-job.outputs.apimName }}"
               
               Write-Output "API Management Instance Name: $apimName"
-              ./scripts/Set-RepoHtmlPlaceholders.ps1 -HtmlFile $htmlFilePath -ApimName $apimName
+              ./scripts/Set-RepoPlaceholders.ps1 -HtmlFile $htmlFilePath -ApimName $apimName
           
               # Verification
               $content = Get-Content $htmlFilePath -Raw
@@ -235,44 +235,44 @@ jobs:
           azPSVersion: "latest"
           inlineScript: |
             $ErrorActionPreference = "Stop"
-            ./scripts/Set-ServicePrincipleCosmosDBRoleDelegation.ps1 `
+            ./scripts/Set-SPCosmosDBRoleDelegate.ps1 `
               -ResourceGroupName "${{ inputs.resourceGroupName }}" `
               -CosmosDbAccountName "${{ needs.deploy-backend-job.outputs.cosmosDbAccountName }}" `
               -ServicePrincipalClientId "${{ secrets.AZURE_CLIENT_ID }}"
-
+    
       - name: Set Service Principle App Config Role Delegation
         uses: azure/powershell@v1
         with:
           azPSVersion: "latest"
           inlineScript: |
             $ErrorActionPreference = "Stop"
-            ./scripts/Set-ServicePrincipleAppConfigRoleDelegation.ps1 `
+            ./scripts/Set-SPAppConfigRoleDelegate.ps1 `
               -ResourceGroupName "${{ inputs.resourceGroupName }}" `
               -AppConfigName "${{ needs.deploy-backend-job.outputs.appConfigName }}" `
               -ServicePrincipalClientId "${{ secrets.AZURE_CLIENT_ID }}"
-
+      
       - name: Set Service Principle Function App Role Delegation
         uses: azure/powershell@v1
         with:
           azPSVersion: "latest"
           inlineScript: |
             $ErrorActionPreference = "Stop"
-            ./scripts/Set-ServicePrincipleFunctionAppRoleDelegation.ps1 `
+            ./scripts/Set-SPAppRoleDelegate.ps1 `
               -ResourceGroupName "${{ inputs.resourceGroupName }}" `
               -FunctionAppName "${{ needs.deploy-backend-job.outputs.functionAppName }}" `
               -ServicePrincipalClientId "${{ secrets.AZURE_CLIENT_ID }}"
-
+      
       - name: Set Function App Cosmos DB Permissions
         uses: azure/powershell@v1
         with:
           azPSVersion: "latest"
           inlineScript: |
             $ErrorActionPreference = "Stop"
-            ./scripts/Set-FunctionAppCosmosDBPermission.ps1 `
+            ./scripts/Set-FuncAppCosmosDBPerms.ps1 `
               -ResourceGroupName "${{ inputs.resourceGroupName }}" `
               -FunctionAppName "${{ needs.deploy-backend-job.outputs.functionAppName }}" `
               -CosmosDbAccountName "${{ needs.deploy-backend-job.outputs.cosmosDbAccountName }}"
-
+      
       - name: Ensure Az.AppConfiguration Module is Installed
         uses: azure/powershell@v1
         with:
@@ -283,17 +283,18 @@ jobs:
             if (-not $installedModule) {
               Install-Module -Name Az.AppConfiguration -RequiredVersion 1.3.0 -Force -Scope CurrentUser -SkipPublisherCheck
             }
-      
+          
       - name: Set App Config Key-Value Pairs
         uses: azure/powershell@v1
         with:
           azPSVersion: "latest"
           inlineScript: |
             $ErrorActionPreference = "Stop"
-            ./scripts/Set-AppConfigKeyValuePairs.ps1 `
+            ./scripts/Set-AppConfigKVPs.ps1 `
               -AppConfigName "${{ needs.deploy-backend-job.outputs.appConfigName }}" `
               -KeyVaultName "${{ needs.deploy-backend-job.outputs.keyVaultName }}" `
               -CosmosDbAccountName "${{ needs.deploy-backend-job.outputs.cosmosDbAccountName }}" `
               -CosmosDbDatabaseName "${{ needs.deploy-backend-job.outputs.cosmosDbDatabaseName }}" `
               -CosmosDbContainerName "${{ needs.deploy-backend-job.outputs.cosmosDbContainerName }}" `
               -CosmosDbContainerPartitionKey "${{ needs.deploy-backend-job.outputs.cosmosDbContainerPartitionKey }}"
+          

@@ -77,8 +77,6 @@ Defined within [main.bicep](./main.bicep) and pertain to resource naming, locati
 ### CI/CD Secrets
 Secured in GitHub Actions Secrets and used during CI/CD processes.
 
-#
-
 ## PowerShell Scripts
 - **Set-AppConfigKVPs.ps1**: This script sets key-value pairs on an Azure App Configuration.
   
