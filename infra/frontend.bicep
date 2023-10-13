@@ -13,7 +13,7 @@ param repositoryToken string  // Secure token for accessing the repository
 output swaName string = swa.name
 output swaUrl string = swa.properties.defaultHostname
 output apimName string = apim.name
-output apimUrl string = apim.properties.gatewayRegionalUrl
+output apimUrl string = apim.properties.gatewayUrl
 
 // Resource definition for Static Web App
 resource swa 'Microsoft.Web/staticSites@2022-03-01' = {
