@@ -134,16 +134,29 @@ resource apiPolicy 'Microsoft.ApiManagement/service/apis/policies@2022-08-01' = 
   properties: {
     format: 'rawxml'
     value: '''<policies>
-              <inbound>
-                <cors>
-                  <allowed-origins>
-                    <origin>https://${swa.properties.defaultHostname}</origin>
-                  </allowed-origins>
-                  <allowed-methods>
-                    <method>GET</method>
-                  </allowed-methods>
-                </cors>
-              </inbound>
-            </policies>'''
+                <inbound>
+                  <cors>
+                    <allowed-origins>
+                      <origin>https://wonderful-moss-041f2f710.3.azurestaticapps.net</origin>
+                    </allowed-origins>
+                    <allowed-methods preflight-result-max-age="300">
+                      <method>GET</method>
+                      <method>POST</method>
+                    </allowed-methods>
+                    <allowed-headers>
+                      <header>*</header>
+                    </allowed-headers>
+                  </cors>
+                </inbound>
+                <backend>
+                  <base />
+                </backend>
+                <outbound>
+                  <base />
+                </outbound>
+                <on-error>
+                  <base />
+                </on-error>
+              </policies>'''
   }
 }
