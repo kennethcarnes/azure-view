@@ -48,7 +48,6 @@ Data is organized based on Azure namespaces, resource types, and API versions, m
 - Deployment to multiple environments via Github Actions
   ![Deployment Screenshot](/images/image-3.png)  
   [Learn More](https://learn.microsoft.com/en-us/training/modules/manage-multiple-environments-using-bicep-github-actions/2-understand-environments)
-
   
 - Separate workload identities for each environment  
   ![Workload Identities](/images/image-1.png)  
@@ -61,16 +60,24 @@ Data is organized based on Azure namespaces, resource types, and API versions, m
 
 ## IaC Orchestration
 
-- `main.bicep`: Orchestrates frontend and backend resource deployments.
+### [main.bicep](./main.bicep)
+Primary entry for deployments, managing environment-specific configurations.
 
-- `frontend.bicep`: Sets up the Azure App Service to host the Sunburst Chart created with [Plotly](https://plotly.com/)
+### [frontend.bicep](./frontend.bicep)
+Deploys and configures Azure Static Web App and API Management Service.
 
-- `backend.bicep`: Sets up an Azure Function which runs the `fetch-and-store.ps1` script on initial deployment, and again every 24 hours. It also sets up an Azure Cosmos DB with default automatic indexing, configures a 24 hour TTL, and `resourceType` as the partition key.
+### [backend.bicep](./backend.bicep)
+Defines Azure Function and Azure Cosmos DB setups for backend processing and data storage.
 
-# Parameters and Secrets
-- Parameters that pertain to infrastructure are stored in `main.bicep`
-- Secrets that pertain to CI/CD are stored in Github Actions Secrets
-- Secrets that pertain to infrastructure are stored in Azure Key vault
+## Parameters and Secrets Management
+
+### Infrastructure Parameters
+Defined within [main.bicep](./main.bicep) and pertain to resource naming, location, and sizing.
+
+### CI/CD Secrets
+Secured in GitHub Actions Secrets and used during CI/CD processes.
+
+#
 
 ## PowerShell Scripts
 - **Set-AppConfigKVPs.ps1**: This script sets key-value pairs on an Azure App Configuration.
