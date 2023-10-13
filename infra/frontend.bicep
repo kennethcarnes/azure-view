@@ -82,13 +82,7 @@ resource apiIngestOperation 'Microsoft.ApiManagement/service/apis/operations@202
           required: false
         }
       ]
-      headers: [
-        {
-          name: 'x-api-key'
-          type: 'string'
-          required: true
-        }
-      ]
+      headers: [] // Empty headers - No API Key Required
     }
     responses: [
       {
@@ -116,13 +110,7 @@ resource apiRetrieveOperation 'Microsoft.ApiManagement/service/apis/operations@2
           required: false
         }
       ]
-      headers: [
-        {
-          name: 'x-api-key'
-          type: 'string'
-          required: true
-        }
-      ]
+      headers: [] // Empty headers - No API Key Required
     }
   }
 }
