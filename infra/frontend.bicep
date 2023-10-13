@@ -127,23 +127,23 @@ resource apiRetrieveOperation 'Microsoft.ApiManagement/service/apis/operations@2
   }
 }
 
-// // Resource definition for a policy for the API
-// resource apiPolicy 'Microsoft.ApiManagement/service/apis/policies@2022-08-01' = {
-//   parent: api
-//   name: 'policy'
-//   properties: {
-//     format: 'rawxml'
-//     value: '''<policies>
-//               <inbound>
-//                 <cors>
-//                   <allowed-origins>
-//                     <origin>https://${swa.properties.defaultHostname}</origin>
-//                   </allowed-origins>
-//                   <allowed-methods>
-//                     <method>GET</method>
-//                   </allowed-methods>
-//                 </cors>
-//               </inbound>
-//             </policies>'''
-//   }
-// }
+// Resource definition for a policy for the API
+resource apiPolicy 'Microsoft.ApiManagement/service/apis/policies@2022-08-01' = {
+  parent: api
+  name: 'policy'
+  properties: {
+    format: 'rawxml'
+    value: '''<policies>
+              <inbound>
+                <cors>
+                  <allowed-origins>
+                    <origin>https://${swa.properties.defaultHostname}</origin>
+                  </allowed-origins>
+                  <allowed-methods>
+                    <method>GET</method>
+                  </allowed-methods>
+                </cors>
+              </inbound>
+            </policies>'''
+  }
+}
