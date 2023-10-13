@@ -36,7 +36,7 @@ resource swa 'Microsoft.Web/staticSites@2022-03-01' = {
 }
 
 // Resource definition for Azure API Management service
-resource apim 'Microsoft.ApiManagement/service@2021-08-01' = {
+resource apim 'Microsoft.ApiManagement/service@2022-08-01' = {
   name: apimName
   location: location
   sku: {
@@ -44,16 +44,16 @@ resource apim 'Microsoft.ApiManagement/service@2021-08-01' = {
     name: 'Consumption'
   }
   properties: {
-    publisherName: 'Kenneth Carnes'      // Name of the publisher
-    publisherEmail: 'kc@kennethcarnes.com' // Email of the publisher
+    publisherName: 'Kenneth Carnes'
+    publisherEmail: 'kc@kennethcarnes.com'
   }
   identity: {
-    type: 'SystemAssigned'               // Type of managed identity
+    type: 'SystemAssigned'
   }  
 }
 
 // Resource definition for API within Azure API Management
-resource api 'Microsoft.ApiManagement/service/apis@2021-08-01' = {
+resource api 'Microsoft.ApiManagement/service/apis@2022-08-01' = {
   parent: apim
   name: 'api'
   properties: {
@@ -65,7 +65,7 @@ resource api 'Microsoft.ApiManagement/service/apis@2021-08-01' = {
 }
 
 // Resource definition for an "ingest" operation within the API
-resource apiIngestOperation 'Microsoft.ApiManagement/service/apis/operations@2021-08-01' = {
+resource apiIngestOperation 'Microsoft.ApiManagement/service/apis/operations@2022-08-01' = {
   parent: api
   name: 'ingest'
   properties: {
@@ -99,7 +99,7 @@ resource apiIngestOperation 'Microsoft.ApiManagement/service/apis/operations@202
 }
 
 // Resource definition for a "retrieve" operation within the API
-resource apiRetrieveOperation 'Microsoft.ApiManagement/service/apis/operations@2021-08-01' = {
+resource apiRetrieveOperation 'Microsoft.ApiManagement/service/apis/operations@2022-08-01' = {
   parent: api
   name: 'retrieve'
   properties: {
@@ -127,7 +127,7 @@ resource apiRetrieveOperation 'Microsoft.ApiManagement/service/apis/operations@2
 }
 
 // Resource definition for a policy for the API
-resource apiPolicy 'Microsoft.ApiManagement/service/apis/policies@2021-04-01-preview' = {
+resource apiPolicy 'Microsoft.ApiManagement/service/apis/policies@2022-08-01' = {
   parent: api
   name: 'policy'
   properties: {
