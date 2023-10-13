@@ -166,12 +166,13 @@ jobs:
             tenantId=${{ secrets.AZURE_TENANT_ID }}
 
       - name: Get API Management Name
-        id: deploy-frontend-job
+        id: get-apim-name
         run: |
           apimName=$(az deployment group show --name ${{ github.run_number }} --resource-group ${{ inputs.resourceGroupName }} --query 'properties.outputs.apimName.value' --output tsv)
           echo "API Management Name: $apimName"
           echo "apimName=$apimName" >> $GITHUB_ENV
-
+          echo "::set-output name=apimName::$apimName"  # Add this line to set the output
+      
       - name: Replace Placeholders in HTML
         uses: azure/powershell@v1
         with:
@@ -179,11 +180,11 @@ jobs:
           inlineScript: |
             $ErrorActionPreference = "Stop"
             $htmlFilePath = "./app/index.html"
-            $apimName = "${{ steps.deploy-frontend-job.outputs.apimName }}"
-              
-              Write-Output "API Management Instance Name: $apimName"
-              ./scripts/Set-RepoPlaceholders.ps1 -HtmlFile $htmlFilePath -ApimName $apimName
-          
+            $apimName = "${{ steps.get-apim-name.outputs.apimName }}" # Reference the correct step ID here
+            
+            Write-Output "API Management Instance Name: $apimName"
+            ./scripts/Set-RepoPlaceholders.ps1 -HtmlFile $htmlFilePath -ApimName $apimName
+    
               # Verification
               $content = Get-Content $htmlFilePath -Raw
               Write-Output "Updated HTML Content: $content"
